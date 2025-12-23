@@ -181,7 +181,9 @@ export interface CreateWarehouseDTO {
 export interface SupplierContactPerson {
     firstName: string;
     lastName: string;
-    position: string;
+    email: string;
+    phone: string;
+    position?: string;
 }
 
 export interface Supplier {

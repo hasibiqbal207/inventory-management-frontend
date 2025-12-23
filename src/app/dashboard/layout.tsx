@@ -49,7 +49,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     ];
 
     const adminNavigation = [
+        { name: "Admin Dashboard", href: "/dashboard/admin", icon: BarChart3 },
         { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
+        { name: "Metrics", href: "/dashboard/admin/metrics", icon: BarChart3 },
     ];
 
     return (
@@ -99,7 +101,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
                     {/* User Profile */}
                     <div className="p-4 border-t border-gray-200">
-                        <div className="flex items-center">
+                        <div className="flex items-center mb-3">
                             <div className="flex-shrink-0">
                                 <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
                                     {user?.firstName?.[0]}
@@ -112,15 +114,16 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                 </p>
                                 <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleLogout}
-                                className="ml-2"
-                            >
-                                <LogOut className="w-4 h-4" />
-                            </Button>
                         </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleLogout}
+                            className="w-full justify-center"
+                        >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Logout
+                        </Button>
                     </div>
                 </div>
             </aside>
