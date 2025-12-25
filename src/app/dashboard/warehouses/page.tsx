@@ -19,7 +19,17 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import type { Warehouse as WarehouseType, CreateWarehouseDTO } from "@/types/api";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function WarehousesPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "warehouse_supervisor", "auditor", "executive"]}>
+            <WarehousesPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function WarehousesPageContent() {
     const { user } = useAuth();
     const queryClient = useQueryClient();
 
@@ -67,7 +77,7 @@ export default function WarehousesPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseType | null>(null);
 
-    const isAdmin = user?.role === "admin";
+    const canManageWarehouses = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor";
 
     const handleCreate = async (data: CreateWarehouseDTO) => {
         await createWarehouse.mutateAsync(data);
@@ -115,7 +125,7 @@ export default function WarehousesPage() {
                     <h1 className="text-3xl font-bold text-gray-900">Warehouses</h1>
                     <p className="text-gray-600 mt-1">Manage warehouse locations and capacity</p>
                 </div>
-                {isAdmin && (
+                {canManageWarehouses && (
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Warehouse
@@ -173,7 +183,7 @@ export default function WarehousesPage() {
                                     </div>
                                 </div>
 
-                                {isAdmin && (
+                                {canManageWarehouses && (
                                     <div className="flex gap-2 pt-3 border-t">
                                         <Button
                                             variant="outline"
@@ -204,7 +214,7 @@ export default function WarehousesPage() {
                     <Warehouse className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No warehouses yet</h3>
                     <p className="text-gray-600 mb-4">Add warehouses to track inventory locations</p>
-                    {isAdmin && (
+                    {canManageWarehouses && (
                         <Button onClick={() => setIsCreateDialogOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Add Warehouse

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useInventory, useAddStock, useRemoveStock } from "@/hooks/use-inventory";
+import { useInventory, useAddStock, useRemoveStock, useTransferStock } from "@/hooks/use-inventory";
 import { useProducts } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,20 +16,38 @@ import {
 } from "@/components/ui/dialog";
 import { AddStockForm } from "@/components/inventory/add-stock-form";
 import { RemoveStockForm } from "@/components/inventory/remove-stock-form";
+import { TransferStockForm } from "@/components/inventory/transfer-stock-form";
 import { Plus, Minus, Search, Warehouse, TrendingUp, TrendingDown, Package } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 import type { AddStockDTO, RemoveStockDTO, Inventory, Product } from "@/types/api";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function InventoryPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "auditor", "executive"]}>
+            <InventoryPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function InventoryPageContent() {
     const { data: inventory, isLoading: inventoryLoading } = useInventory();
     const { data: products, isLoading: productsLoading } = useProducts();
     const addStock = useAddStock();
     const removeStock = useRemoveStock();
+    const transferStock = useTransferStock();
 
     const [searchTerm, setSearchTerm] = useState("");
     const [isAddStockDialogOpen, setIsAddStockDialogOpen] = useState(false);
     const [isRemoveStockDialogOpen, setIsRemoveStockDialogOpen] = useState(false);
+    const [isTransferStockDialogOpen, setIsTransferStockDialogOpen] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
+    const { user } = useAuth();
+
+    const canManageStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
+    const canTransferStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor";
 
     const isLoading = inventoryLoading || productsLoading;
 
@@ -66,6 +84,12 @@ export default function InventoryPage() {
         setSelectedProductId(undefined);
     };
 
+    const handleTransferStock = async (data: any) => {
+        await transferStock.mutateAsync(data);
+        setIsTransferStockDialogOpen(false);
+        setSelectedProductId(undefined);
+    };
+
     const openAddStockDialog = (productId?: string) => {
         setSelectedProductId(productId);
         setIsAddStockDialogOpen(true);
@@ -76,9 +100,10 @@ export default function InventoryPage() {
         setIsRemoveStockDialogOpen(true);
     };
 
-    const getStockStatus = (quantity: number) => {
+    const getStockStatus = (quantity: number, min?: number, max?: number) => {
         if (quantity === 0) return { label: "Out of Stock", variant: "danger" as const };
-        if (quantity < 10) return { label: "Low Stock", variant: "warning" as const };
+        if (min !== undefined && quantity < min) return { label: "Low Stock", variant: "warning" as const };
+        if (max !== undefined && quantity > max) return { label: "Overstock", variant: "warning" as const };
         return { label: "In Stock", variant: "success" as const };
     };
 
@@ -104,14 +129,24 @@ export default function InventoryPage() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button onClick={() => openAddStockDialog()}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Stock
-                    </Button>
-                    <Button variant="outline" onClick={() => openRemoveStockDialog()}>
-                        <Minus className="w-4 h-4 mr-2" />
-                        Remove Stock
-                    </Button>
+                    {canManageStock && (
+                        <Button onClick={() => openAddStockDialog()}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Stock
+                        </Button>
+                    )}
+                    {canTransferStock && (
+                        <Button variant="outline" onClick={() => setIsTransferStockDialogOpen(true)}>
+                            <TrendingUp className="w-4 h-4 mr-2" />
+                            Transfer Stock
+                        </Button>
+                    )}
+                    {canManageStock && (
+                        <Button variant="outline" onClick={() => openRemoveStockDialog()}>
+                            <Minus className="w-4 h-4 mr-2" />
+                            Remove Stock
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -212,7 +247,7 @@ export default function InventoryPage() {
                                 </thead>
                                 <tbody>
                                     {filteredProducts.map((product) => {
-                                        const status = getStockStatus(product.stockQuantity);
+                                        const status = getStockStatus(product.stockQuantity, product.minStockLevel, product.maxStockLevel);
                                         const value = product.price * product.stockQuantity;
 
                                         return (
@@ -231,8 +266,8 @@ export default function InventoryPage() {
                                                 </td>
                                                 <td className="py-3 px-4 text-right">
                                                     <span className={`font-semibold ${product.stockQuantity === 0 ? 'text-red-600' :
-                                                            product.stockQuantity < 10 ? 'text-yellow-600' :
-                                                                'text-green-600'
+                                                        product.stockQuantity < 10 ? 'text-yellow-600' :
+                                                            'text-green-600'
                                                         }`}>
                                                         {product.stockQuantity}
                                                     </span>
@@ -246,23 +281,25 @@ export default function InventoryPage() {
                                                     <Badge variant={status.variant}>{status.label}</Badge>
                                                 </td>
                                                 <td className="py-3 px-4 text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => openAddStockDialog(product._id)}
-                                                        >
-                                                            <Plus className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => openRemoveStockDialog(product._id)}
-                                                            disabled={product.stockQuantity === 0}
-                                                        >
-                                                            <Minus className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
+                                                    {canManageStock && (
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => openAddStockDialog(product._id)}
+                                                            >
+                                                                <Plus className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => openRemoveStockDialog(product._id)}
+                                                                disabled={product.stockQuantity === 0}
+                                                            >
+                                                                <Minus className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );
@@ -323,6 +360,27 @@ export default function InventoryPage() {
                             setSelectedProductId(undefined);
                         }}
                         isLoading={removeStock.isPending}
+                        preselectedProductId={selectedProductId}
+                    />
+                </DialogContent>
+            </Dialog>
+
+            {/* Transfer Stock Dialog */}
+            <Dialog open={isTransferStockDialogOpen} onOpenChange={setIsTransferStockDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Transfer Stock</DialogTitle>
+                        <DialogDescription>
+                            Move inventory between warehouses
+                        </DialogDescription>
+                    </DialogHeader>
+                    <TransferStockForm
+                        onSubmit={handleTransferStock}
+                        onCancel={() => {
+                            setIsTransferStockDialogOpen(false);
+                            setSelectedProductId(undefined);
+                        }}
+                        isLoading={transferStock.isPending}
                         preselectedProductId={selectedProductId}
                     />
                 </DialogContent>

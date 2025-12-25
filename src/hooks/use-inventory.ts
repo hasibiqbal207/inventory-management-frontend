@@ -81,3 +81,28 @@ export function useUpdateInventory() {
         },
     });
 }
+
+/**
+ * Transfer stock between warehouses
+ */
+export function useTransferStock() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: {
+            productId: string;
+            fromWarehouseId: string;
+            toWarehouseId: string;
+            quantity: number;
+            reason: string;
+        }) => inventoryService.transferStock(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["inventory"] });
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            toast.success("Stock transferred successfully!");
+        },
+        onError: (error: any) => {
+            toast.error(error?.error?.message || "Failed to transfer stock");
+        },
+    });
+}

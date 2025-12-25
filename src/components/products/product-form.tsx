@@ -26,6 +26,8 @@ export function ProductForm({
         category: "",
         sku: "",
         stockQuantity: 0,
+        minStockLevel: 10,
+        maxStockLevel: 1000,
     });
 
     useEffect(() => {
@@ -37,6 +39,8 @@ export function ProductForm({
                 category: product.category,
                 sku: product.sku,
                 stockQuantity: product.stockQuantity,
+                minStockLevel: product.minStockLevel,
+                maxStockLevel: product.maxStockLevel,
             });
         }
     }, [product]);
@@ -133,6 +137,34 @@ export function ProductForm({
                         value={formData.stockQuantity}
                         onChange={handleChange}
                         placeholder="0"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="minStockLevel">Min Stock Level (Alert)</Label>
+                    <Input
+                        id="minStockLevel"
+                        name="minStockLevel"
+                        type="number"
+                        min="0"
+                        value={formData.minStockLevel}
+                        onChange={handleChange}
+                        placeholder="10"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="maxStockLevel">Max Stock Level (Overstock)</Label>
+                    <Input
+                        id="maxStockLevel"
+                        name="maxStockLevel"
+                        type="number"
+                        min="0"
+                        value={formData.maxStockLevel}
+                        onChange={handleChange}
+                        placeholder="1000"
                     />
                 </div>
             </div>

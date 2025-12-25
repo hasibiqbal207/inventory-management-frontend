@@ -50,4 +50,18 @@ export const inventoryService = {
         const response: any = await apiClient.put(`/inventory/${id}`, data);
         return response.data.inventoryItem;
     },
+
+    /**
+     * Transfer stock between warehouses
+     */
+    async transferStock(data: {
+        productId: string;
+        fromWarehouseId: string;
+        toWarehouseId: string;
+        quantity: number;
+        reason: string;
+    }): Promise<any> {
+        const response: any = await apiClient.post("/inventory/transfer", data);
+        return response.data;
+    },
 };

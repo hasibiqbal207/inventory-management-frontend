@@ -13,12 +13,22 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { Plus, ShoppingCart, Eye, Trash2 } from "lucide-react";
+import { Plus, ShoppingCart, Eye, Trash2, Package } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Order, OrderStatus, OrderType } from "@/types/api";
 import { useAuth } from "@/contexts/auth-context";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function OrdersPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "procurement_officer", "sales_rep", "finance_officer", "auditor", "executive"]}>
+            <OrdersPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function OrdersPageContent() {
     const router = useRouter();
     const { user } = useAuth();
     const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
@@ -37,6 +47,9 @@ export default function OrdersPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const isAdmin = user?.role === "admin";
+    const canCreateOrders = user?.role === "admin" || user?.role === "sales_rep" || user?.role === "procurement_officer";
+    const canUpdateStatus = user?.role === "admin" || user?.role === "warehouse_staff" || user?.role === "warehouse_supervisor" || user?.role === "sales_rep" || user?.role === "procurement_officer";
+    const canDeleteOrders = user?.role === "admin";
 
     const getStatusBadge = (status: OrderStatus) => {
         const variants: Record<OrderStatus, "default" | "warning" | "success" | "danger"> = {
@@ -114,10 +127,12 @@ export default function OrdersPage() {
                         Manage purchase and sales orders
                     </p>
                 </div>
-                <Button onClick={() => router.push("/dashboard/orders/new")}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Order
-                </Button>
+                {canCreateOrders && (
+                    <Button onClick={() => router.push("/dashboard/orders/new")}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Order
+                    </Button>
+                )}
             </div>
 
             {/* Statistics */}
@@ -262,7 +277,29 @@ export default function OrdersPage() {
                                             View
                                         </Button>
 
-                                        {order.status !== "completed" && order.status !== "cancelled" && (
+                                        {canUpdateStatus && order.orderType === "purchase" && order.status !== "completed" && order.status !== "cancelled" && (
+                                            <Button
+                                                size="sm"
+                                                className="bg-green-600 hover:bg-green-700"
+                                                onClick={() => handleStatusChange(order._id, "completed")}
+                                            >
+                                                <Package className="w-4 h-4 mr-1" />
+                                                Receive Items
+                                            </Button>
+                                        )}
+
+                                        {canUpdateStatus && order.orderType === "sales" && order.status !== "completed" && order.status !== "cancelled" && (
+                                            <Button
+                                                size="sm"
+                                                className="bg-blue-600 hover:bg-blue-700"
+                                                onClick={() => handleStatusChange(order._id, "completed")}
+                                            >
+                                                <ShoppingCart className="w-4 h-4 mr-1" />
+                                                Ship Order
+                                            </Button>
+                                        )}
+
+                                        {canUpdateStatus && order.status !== "completed" && order.status !== "cancelled" && (
                                             <select
                                                 value={order.status}
                                                 onChange={(e) => handleStatusChange(order._id, e.target.value as OrderStatus)}
@@ -275,7 +312,7 @@ export default function OrdersPage() {
                                             </select>
                                         )}
 
-                                        {isAdmin && (
+                                        {canDeleteOrders && (
                                             <Button
                                                 size="sm"
                                                 variant="destructive"
@@ -299,10 +336,12 @@ export default function OrdersPage() {
                             ? "Try adjusting your filters"
                             : "Create your first order to get started"}
                     </p>
-                    <Button onClick={() => router.push("/dashboard/orders/new")}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Order
-                    </Button>
+                    {canCreateOrders && (
+                        <Button onClick={() => router.push("/dashboard/orders/new")}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Order
+                        </Button>
+                    )}
                 </div>
             )}
 

@@ -8,7 +8,17 @@ import { OrderForm } from "@/components/orders/order-form";
 import { ArrowLeft } from "lucide-react";
 import type { CreateOrderDTO } from "@/types/api";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function NewOrderPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "procurement_officer", "sales_rep"]}>
+            <NewOrderPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function NewOrderPageContent() {
     const router = useRouter();
     const createOrder = useCreateOrder();
 

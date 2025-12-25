@@ -33,13 +33,13 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 px-4">
             <div className="w-full max-w-md">
-                <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="bg-card rounded-lg shadow-xl p-8 border border-border">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-                        <p className="text-gray-600 mt-2">
+                        <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
+                        <p className="text-muted-foreground mt-2">
                             Sign in to your Inventory Management account
                         </p>
                     </div>
@@ -83,10 +83,10 @@ export default function LoginPage() {
 
                     {/* Footer */}
                     <div className="mt-6 text-center text-sm">
-                        <span className="text-gray-600">Don't have an account? </span>
+                        <span className="text-muted-foreground">Don't have an account? </span>
                         <Link
                             href="/register"
-                            className="text-blue-600 hover:text-blue-700 font-medium"
+                            className="text-primary hover:text-primary/90 font-medium"
                         >
                             Sign up
                         </Link>
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Additional Info */}
-                <p className="text-center text-sm text-gray-600 mt-4">
+                <p className="text-center text-sm text-muted-foreground mt-4">
                     Inventory Management System v1.0.0
                 </p>
             </div>

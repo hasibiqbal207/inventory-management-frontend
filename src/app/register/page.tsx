@@ -61,13 +61,13 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 px-4 py-12">
             <div className="w-full max-w-md">
-                <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="bg-card rounded-lg shadow-xl p-8 border border-border">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-                        <p className="text-gray-600 mt-2">
+                        <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
+                        <p className="text-muted-foreground mt-2">
                             Join our Inventory Management System
                         </p>
                     </div>
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                                 required
                                 autoComplete="new-password"
                             />
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 Must be at least 6 characters
                             </p>
                         </div>
@@ -158,10 +158,10 @@ export default function RegisterPage() {
 
                     {/* Footer */}
                     <div className="mt-6 text-center text-sm">
-                        <span className="text-gray-600">Already have an account? </span>
+                        <span className="text-muted-foreground">Already have an account? </span>
                         <Link
                             href="/login"
-                            className="text-blue-600 hover:text-blue-700 font-medium"
+                            className="text-primary hover:text-primary/90 font-medium"
                         >
                             Sign in
                         </Link>
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Additional Info */}
-                <p className="text-center text-sm text-gray-600 mt-4">
+                <p className="text-center text-sm text-muted-foreground mt-4">
                     Inventory Management System v1.0.0
                 </p>
             </div>

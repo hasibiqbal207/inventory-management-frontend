@@ -3,7 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings, Database, Users, Activity } from "lucide-react";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function AdminSettingsPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminSettingsPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function AdminSettingsPageContent() {
     return (
         <div>
             <div className="mb-6">

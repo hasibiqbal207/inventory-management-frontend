@@ -19,7 +19,17 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import type { Supplier, CreateSupplierDTO } from "@/types/api";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function SuppliersPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "procurement_officer", "auditor", "executive"]}>
+            <SuppliersPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function SuppliersPageContent() {
     const { user } = useAuth();
     const queryClient = useQueryClient();
 
@@ -67,7 +77,7 @@ export default function SuppliersPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
-    const isAdmin = user?.role === "admin";
+    const canManageSuppliers = user?.role === "admin" || user?.role === "procurement_officer";
 
     const handleCreate = async (data: CreateSupplierDTO) => {
         await createSupplier.mutateAsync(data);
@@ -115,7 +125,7 @@ export default function SuppliersPage() {
                     <h1 className="text-3xl font-bold text-gray-900">Suppliers</h1>
                     <p className="text-gray-600 mt-1">Manage supplier relationships and contacts</p>
                 </div>
-                {isAdmin && (
+                {canManageSuppliers && (
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Supplier
@@ -183,7 +193,7 @@ export default function SuppliersPage() {
                                     </div>
                                 </div>
 
-                                {isAdmin && (
+                                {canManageSuppliers && (
                                     <div className="flex gap-2 pt-3 border-t">
                                         <Button
                                             variant="outline"
@@ -214,7 +224,7 @@ export default function SuppliersPage() {
                     <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No suppliers yet</h3>
                     <p className="text-gray-600 mb-4">Add suppliers to manage your supply chain</p>
-                    {isAdmin && (
+                    {canManageSuppliers && (
                         <Button onClick={() => setIsCreateDialogOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Add Supplier

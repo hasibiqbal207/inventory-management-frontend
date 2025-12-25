@@ -20,7 +20,17 @@ export interface APIError {
 // User & Authentication Types
 // ============================================================================
 
-export type UserRole = "admin" | "user";
+export type UserRole =
+    | "admin"
+    | "inventory_manager"
+    | "warehouse_supervisor"
+    | "warehouse_staff"
+    | "procurement_officer"
+    | "sales_rep"
+    | "finance_officer"
+    | "auditor"
+    | "it_support"
+    | "executive";
 
 export interface User {
     _id: string;
@@ -62,6 +72,8 @@ export interface Product {
     price: number;
     category: string;
     stockQuantity: number;
+    minStockLevel: number;
+    maxStockLevel: number;
     sku: string;
     isActive: boolean;
     createdBy: string;
@@ -77,6 +89,8 @@ export interface CreateProductDTO {
     category: string;
     sku: string;
     stockQuantity?: number;
+    minStockLevel?: number;
+    maxStockLevel?: number;
 }
 
 export interface UpdateProductDTO extends Partial<CreateProductDTO> { }

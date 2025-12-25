@@ -7,10 +7,10 @@ import type { UserRole } from "@/types/api";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: UserRole;
+    allowedRoles?: UserRole[];
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
     const router = useRouter();
     const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -23,11 +23,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
             }
 
             // Check role if required
-            if (requiredRole && user?.role !== requiredRole) {
+            if (allowedRoles && user && !allowedRoles.includes(user.role)) {
                 router.push("/dashboard"); // Redirect to dashboard if insufficient permissions
             }
         }
-    }, [isAuthenticated, isLoading, user, requiredRole, router]);
+    }, [isAuthenticated, isLoading, user, allowedRoles, router]);
 
     // Show loading state
     if (isLoading) {
@@ -42,9 +42,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     }
 
     // Not authenticated or insufficient role
-    if (!isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
+    if (!isAuthenticated || (allowedRoles && user && !allowedRoles.includes(user.role))) {
         return null;
     }
 
     return <>{children}</>;
 }
+

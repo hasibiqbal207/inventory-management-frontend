@@ -10,28 +10,38 @@ import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Check } from "lucide-r
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function AlertsPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"]}>
+            <AlertsPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function AlertsPageContent() {
     const queryClient = useQueryClient();
     const [filter, setFilter] = useState<"all" | "unread">("all");
 
     const { data: alerts, isLoading } = useQuery({
         queryKey: ["alerts", filter],
-        queryFn: () => alertsService.getAll(filter === "unread" ? { isRead: false } : undefined),
+        queryFn: () => alertsService.getAll(filter === "unread" ? { status: "active" } : undefined),
     });
 
-    const markAsRead = useMutation({
-        mutationFn: (id: string) => alertsService.markAsRead(id),
+    const acknowledgeAlert = useMutation({
+        mutationFn: (id: string) => alertsService.acknowledge(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["alerts"] });
-            toast.success("Alert marked as read");
+            toast.success("Alert acknowledged");
         },
     });
 
-    const markAllAsRead = useMutation({
-        mutationFn: () => alertsService.markAllAsRead(),
+    const resolveAlert = useMutation({
+        mutationFn: (id: string) => alertsService.resolve(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["alerts"] });
-            toast.success("All alerts marked as read");
+            toast.success("Alert resolved");
         },
     });
 
@@ -60,7 +70,7 @@ export default function AlertsPage() {
         return variants[severity] || "default";
     };
 
-    const unreadCount = alerts?.filter((a) => !a.isRead).length || 0;
+    const unreadCount = alerts?.filter((a) => a.status === "active").length || 0;
 
     if (isLoading) {
         return (
@@ -80,12 +90,6 @@ export default function AlertsPage() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    {unreadCount > 0 && (
-                        <Button variant="outline" onClick={() => markAllAsRead.mutate()}>
-                            <Check className="w-4 h-4 mr-2" />
-                            Mark All Read
-                        </Button>
-                    )}
                 </div>
             </div>
 
@@ -111,7 +115,7 @@ export default function AlertsPage() {
                     {alerts.map((alert) => (
                         <Card
                             key={alert._id}
-                            className={`${!alert.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}
+                            className={`${alert.status === 'active' ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}
                         >
                             <CardContent className="p-4">
                                 <div className="flex items-start gap-4">
@@ -129,7 +133,7 @@ export default function AlertsPage() {
                                                 <Badge variant={getSeverityBadge(alert.severity)}>
                                                     {alert.severity}
                                                 </Badge>
-                                                {!alert.isRead && (
+                                                {alert.status === 'active' && (
                                                     <Badge variant="default">New</Badge>
                                                 )}
                                             </div>
@@ -143,13 +147,22 @@ export default function AlertsPage() {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                {!alert.isRead && (
+                                                {alert.status === 'active' && (
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        onClick={() => markAsRead.mutate(alert._id)}
+                                                        onClick={() => acknowledgeAlert.mutate(alert._id)}
                                                     >
-                                                        Mark as Read
+                                                        Acknowledge
+                                                    </Button>
+                                                )}
+                                                {alert.status === 'acknowledged' && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => resolveAlert.mutate(alert._id)}
+                                                    >
+                                                        Resolve
                                                     </Button>
                                                 )}
                                                 <Button

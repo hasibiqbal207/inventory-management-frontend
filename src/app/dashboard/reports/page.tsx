@@ -8,8 +8,25 @@ import { Button } from "@/components/ui/button";
 import { BarChart3, TrendingUp, Package, DollarSign, Download } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
+import { useAuth } from "@/contexts/auth-context";
+
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function ReportsPage() {
-    const [reportType, setReportType] = useState<"inventory" | "sales">("inventory");
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "warehouse_supervisor", "procurement_officer", "sales_rep", "finance_officer", "auditor", "executive"]}>
+            <ReportsPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function ReportsPageContent() {
+    const { user } = useAuth();
+    const [reportType, setReportType] = useState<"inventory" | "sales" | "suppliers">("inventory");
+
+    const canSeeInventory = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "auditor" || user?.role === "executive";
+    const canSeeSales = user?.role === "admin" || user?.role === "sales_rep" || user?.role === "finance_officer" || user?.role === "executive";
+    const canSeeSuppliers = user?.role === "admin" || user?.role === "procurement_officer" || user?.role === "finance_officer" || user?.role === "executive";
 
     const { data: inventoryReport, isLoading: inventoryLoading } = useQuery({
         queryKey: ["reports", "inventory"],
@@ -23,7 +40,13 @@ export default function ReportsPage() {
         enabled: reportType === "sales",
     });
 
-    const isLoading = inventoryLoading || salesLoading;
+    const { data: supplierReport, isLoading: supplierLoading } = useQuery({
+        queryKey: ["reports", "suppliers"],
+        queryFn: () => reportsService.getSupplierReport(),
+        enabled: reportType === "suppliers",
+    });
+
+    const isLoading = inventoryLoading || salesLoading || supplierLoading;
 
     return (
         <div>
@@ -40,20 +63,33 @@ export default function ReportsPage() {
 
             {/* Report Type Selector */}
             <div className="flex gap-2 mb-6">
-                <Button
-                    variant={reportType === "inventory" ? "default" : "outline"}
-                    onClick={() => setReportType("inventory")}
-                >
-                    <Package className="w-4 h-4 mr-2" />
-                    Inventory Report
-                </Button>
-                <Button
-                    variant={reportType === "sales" ? "default" : "outline"}
-                    onClick={() => setReportType("sales")}
-                >
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    Sales Report
-                </Button>
+                {canSeeInventory && (
+                    <Button
+                        variant={reportType === "inventory" ? "default" : "outline"}
+                        onClick={() => setReportType("inventory")}
+                    >
+                        <Package className="w-4 h-4 mr-2" />
+                        Inventory Report
+                    </Button>
+                )}
+                {canSeeSales && (
+                    <Button
+                        variant={reportType === "sales" ? "default" : "outline"}
+                        onClick={() => setReportType("sales")}
+                    >
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Sales Report
+                    </Button>
+                )}
+                {canSeeSuppliers && (
+                    <Button
+                        variant={reportType === "suppliers" ? "default" : "outline"}
+                        onClick={() => setReportType("suppliers")}
+                    >
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Supplier Performance
+                    </Button>
+                )}
             </div>
 
             {isLoading ? (
@@ -199,6 +235,56 @@ export default function ReportsPage() {
                                         </p>
                                     </div>
                                 ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : reportType === "suppliers" && supplierReport ? (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Supplier Reliability & Performance</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-gray-200">
+                                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Supplier</th>
+                                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Total Orders</th>
+                                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Total Value</th>
+                                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Avg. Fulfillment</th>
+                                            <th className="text-center py-3 px-4 font-semibold text-gray-700">Reliability</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {supplierReport.map((s: any, idx: number) => (
+                                            <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                                                <td className="py-3 px-4 font-medium text-gray-900">{s.companyName}</td>
+                                                <td className="py-3 px-4 text-right">{s.totalOrders}</td>
+                                                <td className="py-3 px-4 text-right font-semibold text-green-600">
+                                                    {formatCurrency(s.totalValue)}
+                                                </td>
+                                                <td className="py-3 px-4 text-right">
+                                                    {s.avgFulfillmentDays ? `${s.avgFulfillmentDays.toFixed(1)} days` : "N/A"}
+                                                </td>
+                                                <td className="py-3 px-4 text-center">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className={`text-sm font-bold ${s.reliability > 90 ? 'text-green-600' : s.reliability > 70 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                                            {s.reliability.toFixed(1)}%
+                                                        </span>
+                                                        <div className="w-24 h-2 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                                                            <div
+                                                                className={`h-full ${s.reliability > 90 ? 'bg-green-500' : s.reliability > 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                style={{ width: `${s.reliability}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </CardContent>
                     </Card>

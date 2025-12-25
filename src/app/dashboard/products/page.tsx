@@ -19,7 +19,17 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Product, CreateProductDTO } from "@/types/api";
 import { useAuth } from "@/contexts/auth-context";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function ProductsPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin", "inventory_manager", "procurement_officer", "sales_rep", "auditor", "executive"]}>
+            <ProductsPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function ProductsPageContent() {
     const { user } = useAuth();
     const { data: products, isLoading, error } = useProducts();
     const createProduct = useCreateProduct();
@@ -32,7 +42,7 @@ export default function ProductsPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-    const isAdmin = user?.role === "admin";
+    const canManageProducts = user?.role === "admin" || user?.role === "inventory_manager";
 
     // Filter products based on search
     const filteredProducts = products?.filter((product) =>
@@ -76,8 +86,8 @@ export default function ProductsPage() {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading products...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-muted-foreground">Loading products...</p>
                 </div>
             </div>
         );
@@ -87,8 +97,8 @@ export default function ProductsPage() {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                    <p className="text-red-600">Failed to load products</p>
-                    <p className="text-sm text-gray-600 mt-2">
+                    <p className="text-destructive">Failed to load products</p>
+                    <p className="text-sm text-muted-foreground mt-2">
                         {(error as any)?.error?.message || "Please try again later"}
                     </p>
                 </div>
@@ -101,12 +111,12 @@ export default function ProductsPage() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-                    <p className="text-gray-600 mt-1">
+                    <h1 className="text-3xl font-bold text-foreground">Products</h1>
+                    <p className="text-muted-foreground mt-1">
                         Manage your product catalog
                     </p>
                 </div>
-                {isAdmin && (
+                {canManageProducts && (
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Product
@@ -117,7 +127,7 @@ export default function ProductsPage() {
             {/* Search */}
             <div className="mb-6">
                 <div className="relative max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                     <Input
                         type="text"
                         placeholder="Search products by name, SKU, or category..."
@@ -137,7 +147,7 @@ export default function ProductsPage() {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <CardTitle className="text-lg">{product.productName}</CardTitle>
-                                        <p className="text-sm text-gray-500 mt-1">SKU: {product.sku}</p>
+                                        <p className="text-sm text-muted-foreground mt-1">SKU: {product.sku}</p>
                                     </div>
                                     <Badge variant={product.isActive ? "success" : "default"}>
                                         {product.isActive ? "Active" : "Inactive"}
@@ -145,32 +155,32 @@ export default function ProductsPage() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                                     {product.description}
                                 </p>
 
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Price:</span>
+                                        <span className="text-muted-foreground">Price:</span>
                                         <span className="font-semibold">{formatCurrency(product.price)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Category:</span>
+                                        <span className="text-muted-foreground">Category:</span>
                                         <span className="font-medium">{product.category}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Stock:</span>
-                                        <span className={`font-medium ${product.stockQuantity < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                                        <span className="text-muted-foreground">Stock:</span>
+                                        <span className={`font-medium ${product.stockQuantity < 10 ? 'text-destructive' : 'text-green-500'}`}>
                                             {product.stockQuantity} units
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="text-xs text-gray-500 mb-4">
+                                <div className="text-xs text-muted-foreground mb-4">
                                     Updated: {formatDate(product.updatedAt)}
                                 </div>
 
-                                {isAdmin && (
+                                {canManageProducts && (
                                     <div className="flex gap-2">
                                         <Button
                                             variant="outline"
@@ -198,16 +208,16 @@ export default function ProductsPage() {
                 </div>
             ) : (
                 <div className="text-center py-12">
-                    <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                         {searchTerm ? "No products found" : "No products yet"}
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-muted-foreground mb-4">
                         {searchTerm
                             ? "Try adjusting your search terms"
                             : "Get started by adding your first product"}
                     </p>
-                    {isAdmin && !searchTerm && (
+                    {canManageProducts && !searchTerm && (
                         <Button onClick={() => setIsCreateDialogOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Add Product
@@ -267,9 +277,9 @@ export default function ProductsPage() {
                     </DialogHeader>
                     {selectedProduct && (
                         <div className="space-y-4">
-                            <div className="bg-gray-50 p-4 rounded-md">
+                            <div className="bg-muted p-4 rounded-md">
                                 <p className="font-medium">{selectedProduct.productName}</p>
-                                <p className="text-sm text-gray-600">SKU: {selectedProduct.sku}</p>
+                                <p className="text-sm text-muted-foreground">SKU: {selectedProduct.sku}</p>
                             </div>
                             <div className="flex justify-end gap-3">
                                 <Button

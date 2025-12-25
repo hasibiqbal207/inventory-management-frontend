@@ -18,7 +18,17 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
+import { ProtectedRoute } from "@/components/auth/protected-route";
+
 export default function AdminDashboardPage() {
+    return (
+        <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminDashboardPageContent />
+        </ProtectedRoute>
+    );
+}
+
+function AdminDashboardPageContent() {
     // Fetch system metrics
     const { data: metrics } = useQuery({
         queryKey: ["admin-metrics"],
@@ -218,6 +228,13 @@ export default function AdminDashboardPage() {
                             <Button variant="outline" className="w-full justify-start">
                                 <Settings className="w-4 h-4 mr-2" />
                                 System Settings
+                            </Button>
+                        </Link>
+
+                        <Link href="/dashboard/admin/users">
+                            <Button variant="outline" className="w-full justify-start">
+                                <Users className="w-4 h-4 mr-2" />
+                                Manage Users
                             </Button>
                         </Link>
 

@@ -54,4 +54,9 @@ export const reportsService = {
         const response: any = await apiClient.get(`/reports/sales?${queryParams.toString()}`);
         return response.data.report;
     },
+
+    async getSupplierReport(): Promise<any[]> {
+        const response: any = await apiClient.get("/reports/suppliers");
+        return response.data.report;
+    },
 };
