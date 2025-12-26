@@ -59,4 +59,8 @@ export const reportsService = {
         const response: any = await apiClient.get("/reports/suppliers");
         return response.data.report;
     },
+    async getDamageReport(): Promise<any[]> {
+        const response: any = await apiClient.get("/reports/damage");
+        return response.data.report;
+    },
 };

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { reportsService } from "@/services/reports.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, Package, DollarSign, Download } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Package, DollarSign, Download } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 import { useAuth } from "@/contexts/auth-context";
@@ -22,7 +22,7 @@ export default function ReportsPage() {
 
 function ReportsPageContent() {
     const { user } = useAuth();
-    const [reportType, setReportType] = useState<"inventory" | "sales" | "suppliers">("inventory");
+    const [reportType, setReportType] = useState<"inventory" | "sales" | "suppliers" | "damage">("inventory");
 
     const canSeeInventory = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "auditor" || user?.role === "executive";
     const canSeeSales = user?.role === "admin" || user?.role === "sales_rep" || user?.role === "finance_officer" || user?.role === "executive";
@@ -45,8 +45,13 @@ function ReportsPageContent() {
         queryFn: () => reportsService.getSupplierReport(),
         enabled: reportType === "suppliers",
     });
+    const { data: damageReport, isLoading: damageLoading } = useQuery({
+        queryKey: ["reports", "damage"],
+        queryFn: () => reportsService.getDamageReport(),
+        enabled: reportType === "damage",
+    });
 
-    const isLoading = inventoryLoading || salesLoading || supplierLoading;
+    const isLoading = inventoryLoading || salesLoading || supplierLoading || damageLoading;
 
     return (
         <div>
@@ -88,6 +93,15 @@ function ReportsPageContent() {
                     >
                         <BarChart3 className="w-4 h-4 mr-2" />
                         Supplier Performance
+                    </Button>
+                )}
+                {canSeeInventory && (
+                    <Button
+                        variant={reportType === "damage" ? "default" : "outline"}
+                        onClick={() => setReportType("damage")}
+                    >
+                        <TrendingDown className="w-4 h-4 mr-2" />
+                        Damaged Stock
                     </Button>
                 )}
             </div>
@@ -283,6 +297,56 @@ function ReportsPageContent() {
                                                 </td>
                                             </tr>
                                         ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : reportType === "damage" && damageReport ? (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Damaged Stock Report</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-gray-200">
+                                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
+                                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Product</th>
+                                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Warehouse</th>
+                                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Quantity</th>
+                                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Loss Value</th>
+                                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Reference</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {damageReport.map((d: any, idx: number) => (
+                                            <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                                                <td className="py-3 px-4 text-sm">{new Date(d.date).toLocaleDateString()}</td>
+                                                <td className="py-3 px-4">
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">{d.productName}</p>
+                                                        <p className="text-xs text-gray-500">{d.sku}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4 text-sm">{d.warehouseName}</td>
+                                                <td className="py-3 px-4 text-right font-semibold text-red-600">-{d.quantity}</td>
+                                                <td className="py-3 px-4 text-right font-semibold text-red-600">
+                                                    {formatCurrency(d.value)}
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-gray-500">{d.reference}</td>
+                                            </tr>
+                                        ))}
+                                        {damageReport.length === 0 && (
+                                            <tr>
+                                                <td colSpan={6} className="py-8 text-center text-gray-500">
+                                                    No damaged stock records found.
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

@@ -134,6 +134,7 @@ export interface RemoveStockDTO {
     quantity: number;
     reason: string;
     reference: string;
+    isDamage?: boolean;
 }
 
 // ============================================================================

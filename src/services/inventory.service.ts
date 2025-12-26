@@ -24,7 +24,7 @@ export const inventoryService = {
      */
     async getById(id: string): Promise<Inventory> {
         const response: any = await apiClient.get(`/inventory/${id}`);
-        return response.data.inventoryItem;
+        return response.data.inventory;
     },
 
     /**
@@ -32,7 +32,7 @@ export const inventoryService = {
      */
     async addStock(data: AddStockDTO): Promise<Inventory> {
         const response: any = await apiClient.post("/inventory/add", data);
-        return response.data.inventoryItem;
+        return response.data.inventory;
     },
 
     /**
@@ -40,7 +40,7 @@ export const inventoryService = {
      */
     async removeStock(data: RemoveStockDTO): Promise<Inventory> {
         const response: any = await apiClient.post("/inventory/remove", data);
-        return response.data.inventoryItem;
+        return response.data.inventory;
     },
 
     /**
@@ -48,7 +48,7 @@ export const inventoryService = {
      */
     async update(id: string, data: Partial<Inventory>): Promise<Inventory> {
         const response: any = await apiClient.put(`/inventory/${id}`, data);
-        return response.data.inventoryItem;
+        return response.data.inventory;
     },
 
     /**
