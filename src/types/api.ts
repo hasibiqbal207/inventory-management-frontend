@@ -310,9 +310,10 @@ export interface CreateSupplierDTO {
 export type OrderType = "purchase" | "sales";
 export type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 export type PaymentStatus = "pending" | "partial" | "paid";
+export type Currency = "USD" | "EUR" | "GBP" | "BDT";
 
 export interface OrderItem {
-    productId: string;
+    productId: string | Product;
     quantity: number;
     unitPrice: number;
     subtotal?: number;
@@ -323,8 +324,9 @@ export interface Order {
     orderNumber: string;
     orderType: OrderType;
     status: OrderStatus;
-    customerId?: string;
-    supplierId?: string;
+    currency: Currency;
+    customerId?: string | User;
+    supplierId?: string | Supplier;
     items: OrderItem[];
     totalAmount: number;
     paymentStatus: PaymentStatus;
@@ -341,6 +343,7 @@ export interface Order {
 
 export interface CreateOrderDTO {
     orderType: OrderType;
+    currency: Currency;
     customerId?: string;
     supplierId?: string;
     items: OrderItem[];

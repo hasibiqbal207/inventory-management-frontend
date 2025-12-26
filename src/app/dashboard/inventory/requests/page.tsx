@@ -130,10 +130,10 @@ function InventoryRequestsContent() {
                                         </td>
                                         <td className="py-3 px-4">
                                             <div className="font-medium">
-                                                {typeof request.productId === 'object' ? request.productId.productName : 'Product'}
+                                                {request.productId && typeof request.productId === 'object' ? request.productId.productName : 'Product'}
                                             </div>
                                             <div className="text-xs text-muted-foreground">
-                                                {typeof request.productId === 'object' ? request.productId.sku : ''}
+                                                {request.productId && typeof request.productId === 'object' ? request.productId.sku : ''}
                                             </div>
                                         </td>
                                         <td className="py-3 px-4">
@@ -143,7 +143,7 @@ function InventoryRequestsContent() {
                                             {request.quantity}
                                         </td>
                                         <td className="py-3 px-4">
-                                            {typeof request.requestedBy === 'object'
+                                            {request.requestedBy && typeof request.requestedBy === 'object'
                                                 ? `${request.requestedBy.firstName} ${request.requestedBy.lastName}`
                                                 : 'Staff'}
                                         </td>
@@ -209,8 +209,8 @@ function InventoryRequestsContent() {
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-1">
                                     <Label className="text-xs text-muted-foreground">Product</Label>
-                                    <p className="font-medium">{typeof selectedRequest.productId === 'object' ? selectedRequest.productId.productName : 'N/A'}</p>
-                                    <p className="text-xs text-muted-foreground">{typeof selectedRequest.productId === 'object' ? selectedRequest.productId.sku : ''}</p>
+                                    <p className="font-medium">{selectedRequest.productId && typeof selectedRequest.productId === 'object' ? selectedRequest.productId.productName : 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground">{selectedRequest.productId && typeof selectedRequest.productId === 'object' ? selectedRequest.productId.sku : ''}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <Label className="text-xs text-muted-foreground">Status</Label>
@@ -229,7 +229,7 @@ function InventoryRequestsContent() {
                             <div className="grid grid-cols-2 gap-6 border-t pt-4">
                                 <div className="space-y-1">
                                     <Label className="text-xs text-muted-foreground">Warehouse</Label>
-                                    <p className="font-medium">{typeof selectedRequest.warehouseId === 'object' ? selectedRequest.warehouseId.name : 'N/A'}</p>
+                                    <p className="font-medium">{selectedRequest.warehouseId && typeof selectedRequest.warehouseId === 'object' ? selectedRequest.warehouseId.name : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <Label className="text-xs text-muted-foreground">Reference / PO</Label>
