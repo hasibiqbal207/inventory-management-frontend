@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useInventory, useAddStock, useRemoveStock, useTransferStock } from "@/hooks/use-inventory";
+import { useCreateInventoryRequest } from "@/hooks/use-inventory-requests";
 import { useProducts } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,11 +34,14 @@ export default function InventoryPage() {
 }
 
 function InventoryPageContent() {
-    const { data: inventory, isLoading: inventoryLoading } = useInventory();
-    const { data: products, isLoading: productsLoading } = useProducts();
+    const inventoryQuery = useInventory();
+    const productsQuery = useProducts();
+    const { data: inventory, isLoading: inventoryLoading } = inventoryQuery;
+    const { data: products, isLoading: productsLoading } = productsQuery;
     const addStock = useAddStock();
     const removeStock = useRemoveStock();
     const transferStock = useTransferStock();
+    const createRequest = useCreateInventoryRequest();
 
     const [searchTerm, setSearchTerm] = useState("");
     const [isAddStockDialogOpen, setIsAddStockDialogOpen] = useState(false);
@@ -46,8 +50,9 @@ function InventoryPageContent() {
     const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
     const { user } = useAuth();
 
+    const isStaff = user?.role === "warehouse_staff";
     const canManageStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
-    const canTransferStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor";
+    const canTransferStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
 
     const isLoading = inventoryLoading || productsLoading;
 
@@ -73,19 +78,37 @@ function InventoryPageContent() {
     const totalStockValue = products?.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0) || 0;
 
     const handleAddStock = async (data: AddStockDTO) => {
-        await addStock.mutateAsync(data);
+        if (isStaff) {
+            await createRequest.mutateAsync({ ...data, type: "add" });
+        } else {
+            await addStock.mutateAsync(data);
+        }
+        inventoryQuery.refetch();
+        productsQuery.refetch();
         setIsAddStockDialogOpen(false);
         setSelectedProductId(undefined);
     };
 
     const handleRemoveStock = async (data: RemoveStockDTO) => {
-        await removeStock.mutateAsync(data);
+        if (isStaff) {
+            await createRequest.mutateAsync({ ...data, type: "remove" });
+        } else {
+            await removeStock.mutateAsync(data);
+        }
+        inventoryQuery.refetch();
+        productsQuery.refetch();
         setIsRemoveStockDialogOpen(false);
         setSelectedProductId(undefined);
     };
 
     const handleTransferStock = async (data: any) => {
-        await transferStock.mutateAsync(data);
+        if (isStaff) {
+            await createRequest.mutateAsync({ ...data, type: "transfer" });
+        } else {
+            await transferStock.mutateAsync(data);
+        }
+        inventoryQuery.refetch();
+        productsQuery.refetch();
         setIsTransferStockDialogOpen(false);
         setSelectedProductId(undefined);
     };
@@ -338,7 +361,7 @@ function InventoryPageContent() {
                             setIsAddStockDialogOpen(false);
                             setSelectedProductId(undefined);
                         }}
-                        isLoading={addStock.isPending}
+                        isLoading={addStock.isPending || createRequest.isPending}
                         preselectedProductId={selectedProductId}
                     />
                 </DialogContent>
@@ -359,7 +382,7 @@ function InventoryPageContent() {
                             setIsRemoveStockDialogOpen(false);
                             setSelectedProductId(undefined);
                         }}
-                        isLoading={removeStock.isPending}
+                        isLoading={removeStock.isPending || createRequest.isPending}
                         preselectedProductId={selectedProductId}
                     />
                 </DialogContent>
@@ -380,7 +403,7 @@ function InventoryPageContent() {
                             setIsTransferStockDialogOpen(false);
                             setSelectedProductId(undefined);
                         }}
-                        isLoading={transferStock.isPending}
+                        isLoading={transferStock.isPending || createRequest.isPending}
                         preselectedProductId={selectedProductId}
                     />
                 </DialogContent>

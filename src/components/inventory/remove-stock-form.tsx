@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProducts } from "@/hooks/use-products";
+import { useWarehouses } from "@/hooks/use-warehouses";
 import type { RemoveStockDTO } from "@/types/api";
 
 interface RemoveStockFormProps {
@@ -21,9 +22,13 @@ export function RemoveStockForm({
     preselectedProductId,
 }: RemoveStockFormProps) {
     const { data: products } = useProducts();
+    const { data: warehouses } = useWarehouses();
     const [formData, setFormData] = useState<RemoveStockDTO>({
         productId: preselectedProductId || "",
+        warehouseId: "",
         quantity: 0,
+        reason: "",
+        reference: "",
     });
 
     const selectedProduct = products?.find((p) => p._id === formData.productId);
@@ -31,7 +36,7 @@ export function RemoveStockForm({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.quantity <= 0 || formData.quantity > maxQuantity) {
+        if (formData.quantity <= 0 || formData.quantity > maxQuantity || !formData.warehouseId || !formData.reason || !formData.reference) {
             return;
         }
         onSubmit(formData);
@@ -39,25 +44,47 @@ export function RemoveStockForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="productId">Product *</Label>
-                <select
-                    id="productId"
-                    value={formData.productId}
-                    onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, productId: e.target.value }))
-                    }
-                    required
-                    disabled={!!preselectedProductId}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <option value="">Select a product</option>
-                    {products?.map((product) => (
-                        <option key={product._id} value={product._id}>
-                            {product.productName} (SKU: {product.sku}) - Available: {product.stockQuantity}
-                        </option>
-                    ))}
-                </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="productId">Product *</Label>
+                    <select
+                        id="productId"
+                        value={formData.productId}
+                        onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, productId: e.target.value }))
+                        }
+                        required
+                        disabled={!!preselectedProductId}
+                        className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <option value="">Select a product</option>
+                        {products?.map((product) => (
+                            <option key={product._id} value={product._id}>
+                                {product.productName} (SKU: {product.sku})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="warehouseId">Warehouse *</Label>
+                    <select
+                        id="warehouseId"
+                        value={formData.warehouseId}
+                        onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, warehouseId: e.target.value }))
+                        }
+                        required
+                        className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="">Select a warehouse</option>
+                        {warehouses?.map((warehouse) => (
+                            <option key={warehouse._id} value={warehouse._id}>
+                                {warehouse.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {selectedProduct && (
@@ -68,29 +95,54 @@ export function RemoveStockForm({
                 </div>
             )}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="quantity">Quantity to Remove *</Label>
+                    <Input
+                        id="quantity"
+                        name="quantity"
+                        type="number"
+                        min="1"
+                        max={maxQuantity}
+                        value={formData.quantity || ""}
+                        onChange={(e) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                quantity: parseInt(e.target.value) || 0,
+                            }))
+                        }
+                        required
+                        placeholder="Enter quantity"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="reference">Reference / Order Number *</Label>
+                    <Input
+                        id="reference"
+                        name="reference"
+                        value={formData.reference}
+                        onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, reference: e.target.value }))
+                        }
+                        required
+                        placeholder="e.g. SO-12345"
+                    />
+                </div>
+            </div>
+
             <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity to Remove *</Label>
+                <Label htmlFor="reason">Reason for Adjustment *</Label>
                 <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    min="1"
-                    max={maxQuantity}
-                    value={formData.quantity || ""}
+                    id="reason"
+                    name="reason"
+                    value={formData.reason}
                     onChange={(e) =>
-                        setFormData((prev) => ({
-                            ...prev,
-                            quantity: parseInt(e.target.value) || 0,
-                        }))
+                        setFormData((prev) => ({ ...prev, reason: e.target.value }))
                     }
                     required
-                    placeholder="Enter quantity"
+                    placeholder="e.g. Damaged goods, customer return, stock correction..."
                 />
-                {formData.quantity > maxQuantity && (
-                    <p className="text-sm text-red-600">
-                        Cannot remove more than available stock ({maxQuantity} units)
-                    </p>
-                )}
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
@@ -100,9 +152,9 @@ export function RemoveStockForm({
                 <Button
                     type="submit"
                     variant="destructive"
-                    disabled={isLoading || formData.quantity <= 0 || formData.quantity > maxQuantity}
+                    disabled={isLoading || formData.quantity <= 0 || formData.quantity > maxQuantity || !formData.warehouseId || !formData.reason || !formData.reference}
                 >
-                    {isLoading ? "Removing..." : "Remove Stock"}
+                    {isLoading ? "Submitting..." : "Submit"}
                 </Button>
             </div>
         </form>

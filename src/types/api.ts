@@ -114,12 +114,64 @@ export interface Inventory {
 
 export interface AddStockDTO {
     productId: string;
+    warehouseId: string;
     quantity: number;
+    reason: string;
+    reference: string;
 }
 
 export interface RemoveStockDTO {
     productId: string;
+    warehouseId: string;
     quantity: number;
+    reason: string;
+    reference: string;
+}
+
+// ============================================================================
+// Inventory Request Types (Approval Workflow)
+// ============================================================================
+
+export type RequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type RequestType = "add" | "remove" | "transfer";
+
+export interface InventoryRequest {
+    _id: string;
+    productId: string | Product;
+    warehouseId: string | Warehouse;
+    type: RequestType;
+    quantity: number;
+    fromWarehouseId?: string | Warehouse;
+    toWarehouseId?: string | Warehouse;
+    reason: string;
+    reference: string;
+    requestedBy: string | User;
+    status: RequestStatus;
+    approvedBy?: string | User;
+    approvalDate?: string;
+    rejectionReason?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateInventoryRequestDTO {
+    productId: string;
+    warehouseId: string;
+    type: RequestType;
+    quantity: number;
+    fromWarehouseId?: string;
+    toWarehouseId?: string;
+    reason: string;
+    reference: string;
+}
+
+export interface ApproveRequestDTO {
+    id: string;
+}
+
+export interface RejectRequestDTO {
+    id: string;
+    reason: string;
 }
 
 // ============================================================================

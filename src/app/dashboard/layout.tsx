@@ -41,6 +41,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "procurement_officer", "sales_rep", "finance_officer", "auditor", "it_support", "executive"] },
         { name: "Products", href: "/dashboard/products", icon: Package, roles: ["admin", "inventory_manager", "procurement_officer", "sales_rep", "auditor", "executive"] },
         { name: "Inventory", href: "/dashboard/inventory", icon: Warehouse, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "auditor", "executive"] },
+        { name: "Requests", href: "/dashboard/inventory/requests", icon: Bell, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"] },
         { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart, roles: ["admin", "inventory_manager", "procurement_officer", "sales_rep", "finance_officer", "auditor", "executive"] },
         { name: "Suppliers", href: "/dashboard/suppliers", icon: Users, roles: ["admin", "inventory_manager", "procurement_officer", "auditor", "executive"] },
         { name: "Warehouses", href: "/dashboard/warehouses", icon: Warehouse, roles: ["admin", "inventory_manager", "warehouse_supervisor", "auditor", "executive"] },

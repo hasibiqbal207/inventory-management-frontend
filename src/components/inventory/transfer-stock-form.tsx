@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProducts } from "@/hooks/use-products";
-import { useQuery } from "@tanstack/react-query";
-import { warehousesService } from "@/services/warehouses.service";
+import { useWarehouses } from "@/hooks/use-warehouses";
 
 interface TransferStockFormProps {
     onSubmit: (data: {
@@ -15,6 +14,7 @@ interface TransferStockFormProps {
         toWarehouseId: string;
         quantity: number;
         reason: string;
+        reference: string;
     }) => void;
     onCancel: () => void;
     isLoading?: boolean;
@@ -28,10 +28,7 @@ export function TransferStockForm({
     preselectedProductId,
 }: TransferStockFormProps) {
     const { data: products } = useProducts();
-    const { data: warehouses } = useQuery({
-        queryKey: ["warehouses"],
-        queryFn: () => warehousesService.getAll(),
-    });
+    const { data: warehouses } = useWarehouses();
 
     const [formData, setFormData] = useState({
         productId: preselectedProductId || "",
@@ -39,6 +36,7 @@ export function TransferStockForm({
         toWarehouseId: "",
         quantity: 0,
         reason: "",
+        reference: "",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -145,29 +143,48 @@ export function TransferStockForm({
                 )}
             </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="reason">Reason *</Label>
-                <Input
-                    id="reason"
-                    name="reason"
-                    value={formData.reason}
-                    onChange={(e) =>
-                        setFormData((prev) => ({
-                            ...prev,
-                            reason: e.target.value,
-                        }))
-                    }
-                    required
-                    placeholder="e.g., Restocking Branch B"
-                />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="reason">Reason *</Label>
+                    <Input
+                        id="reason"
+                        name="reason"
+                        value={formData.reason}
+                        onChange={(e) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                reason: e.target.value,
+                            }))
+                        }
+                        required
+                        placeholder="e.g., Restocking Branch B"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="reference">Reference *</Label>
+                    <Input
+                        id="reference"
+                        name="reference"
+                        value={formData.reference}
+                        onChange={(e) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                reference: e.target.value,
+                            }))
+                        }
+                        required
+                        placeholder="e.g., TR-12345"
+                    />
+                </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading || formData.quantity <= 0 || !formData.fromWarehouseId || !formData.toWarehouseId}>
-                    {isLoading ? "Transferring..." : "Transfer Stock"}
+                <Button type="submit" disabled={isLoading || formData.quantity <= 0 || !formData.fromWarehouseId || !formData.toWarehouseId || !formData.reason || !formData.reference}>
+                    {isLoading ? "Submitting..." : "Submit"}
                 </Button>
             </div>
         </form>
