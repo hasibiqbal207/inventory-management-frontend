@@ -15,7 +15,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Check, X, Eye, Clock, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { Check, X, Eye, Clock, AlertCircle, CheckCircle2, XCircle, Calendar, Truck, Globe, Box } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -37,6 +37,7 @@ function InventoryRequestsContent() {
 
     const [selectedRequest, setSelectedRequest] = useState<InventoryRequest | null>(null);
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+    const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
 
     const canApprove = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor";
@@ -77,6 +78,11 @@ function InventoryRequestsContent() {
         setIsRejectDialogOpen(false);
         setRejectionReason("");
         setSelectedRequest(null);
+    };
+
+    const openDetails = (request: InventoryRequest) => {
+        setSelectedRequest(request);
+        setIsDetailsDialogOpen(true);
     };
 
     if (isLoading) {
@@ -169,7 +175,7 @@ function InventoryRequestsContent() {
                                                         </Button>
                                                     </>
                                                 )}
-                                                <Button size="sm" variant="outline">
+                                                <Button size="sm" variant="outline" onClick={() => openDetails(request)}>
                                                     <Eye className="w-4 h-4" />
                                                 </Button>
                                             </div>
@@ -188,6 +194,120 @@ function InventoryRequestsContent() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Details Dialog */}
+            <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Request Details</DialogTitle>
+                        <DialogDescription>
+                            Full information for the inventory adjustment request.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedRequest && (
+                        <div className="space-y-6 py-4">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Product</Label>
+                                    <p className="font-medium">{typeof selectedRequest.productId === 'object' ? selectedRequest.productId.productName : 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground">{typeof selectedRequest.productId === 'object' ? selectedRequest.productId.sku : ''}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Status</Label>
+                                    <div>{getStatusBadge(selectedRequest.status)}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Type</Label>
+                                    <div>{getTypeBadge(selectedRequest.type)}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Quantity</Label>
+                                    <p className="font-bold text-lg">{selectedRequest.quantity} units</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6 border-t pt-4">
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Warehouse</Label>
+                                    <p className="font-medium">{typeof selectedRequest.warehouseId === 'object' ? selectedRequest.warehouseId.name : 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Reference / PO</Label>
+                                    <p className="font-medium">{selectedRequest.reference}</p>
+                                </div>
+                                <div className="col-span-2 space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Reason</Label>
+                                    <p className="text-sm bg-muted p-2 rounded">{selectedRequest.reason}</p>
+                                </div>
+                            </div>
+
+                            {(selectedRequest.expiryDate || selectedRequest.supplier || selectedRequest.origin || selectedRequest.productMaterial) && (
+                                <div className="space-y-4 border-t pt-4">
+                                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                                        <Box className="w-4 h-4" /> Additional Metadata
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {selectedRequest.expiryDate && (
+                                            <div className="flex items-center gap-3 text-sm">
+                                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground">Expiry Date</p>
+                                                    <p className="font-medium">{new Date(selectedRequest.expiryDate).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {selectedRequest.supplier && (
+                                            <div className="flex items-center gap-3 text-sm">
+                                                <Truck className="w-4 h-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground">Supplier</p>
+                                                    <p className="font-medium">{selectedRequest.supplier}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {selectedRequest.origin && (
+                                            <div className="flex items-center gap-3 text-sm">
+                                                <Globe className="w-4 h-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground">Origin</p>
+                                                    <p className="font-medium">{selectedRequest.origin}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {selectedRequest.productMaterial && (
+                                            <div className="flex items-center gap-3 text-sm">
+                                                <Box className="w-4 h-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground">Material</p>
+                                                    <p className="font-medium">{selectedRequest.productMaterial}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedRequest.status === "REJECTED" && (
+                                <div className="bg-red-50 border border-red-100 p-3 rounded-md">
+                                    <Label className="text-xs text-red-600 font-bold">Rejection Reason</Label>
+                                    <p className="text-sm text-red-800">{selectedRequest.rejectionReason}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>Close</Button>
+                        {selectedRequest?.status === "PENDING" && canApprove && (
+                            <Button variant="success" onClick={() => {
+                                handleApprove(selectedRequest._id);
+                                setIsDetailsDialogOpen(false);
+                            }}>
+                                Approve Now
+                            </Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Rejection Dialog */}
             <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>

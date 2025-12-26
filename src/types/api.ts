@@ -106,6 +106,10 @@ export interface Inventory {
     quantity: number;
     minimumStockLevel: number;
     maximumStockLevel: number;
+    expiryDate?: string;
+    supplier?: string;
+    origin?: string;
+    productMaterial?: string;
     lastStockUpdate: string;
     updatedBy: string;
     createdAt: string;
@@ -118,6 +122,10 @@ export interface AddStockDTO {
     quantity: number;
     reason: string;
     reference: string;
+    expiryDate?: string;
+    supplier?: string;
+    origin?: string;
+    productMaterial?: string;
 }
 
 export interface RemoveStockDTO {
@@ -145,6 +153,10 @@ export interface InventoryRequest {
     toWarehouseId?: string | Warehouse;
     reason: string;
     reference: string;
+    expiryDate?: string;
+    supplier?: string;
+    origin?: string;
+    productMaterial?: string;
     requestedBy: string | User;
     status: RequestStatus;
     approvedBy?: string | User;
@@ -163,6 +175,10 @@ export interface CreateInventoryRequestDTO {
     toWarehouseId?: string;
     reason: string;
     reference: string;
+    expiryDate?: string;
+    supplier?: string;
+    origin?: string;
+    productMaterial?: string;
 }
 
 export interface ApproveRequestDTO {

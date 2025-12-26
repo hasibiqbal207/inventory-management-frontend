@@ -29,6 +29,10 @@ export function AddStockForm({
         quantity: 0,
         reason: "",
         reference: "",
+        expiryDate: "",
+        supplier: "",
+        origin: "",
+        productMaterial: "",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -40,7 +44,7 @@ export function AddStockForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto px-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="productId">Product *</Label>
@@ -133,7 +137,64 @@ export function AddStockForm({
                 />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="border-t pt-4 mt-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Additional Information (Optional)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="expiryDate">Expiry Date</Label>
+                        <Input
+                            id="expiryDate"
+                            name="expiryDate"
+                            type="date"
+                            value={formData.expiryDate}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, expiryDate: e.target.value }))
+                            }
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="supplier">Supplier</Label>
+                        <Input
+                            id="supplier"
+                            name="supplier"
+                            value={formData.supplier}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, supplier: e.target.value }))
+                            }
+                            placeholder="e.g. Global Tech Solutions"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="origin">Origin</Label>
+                        <Input
+                            id="origin"
+                            name="origin"
+                            value={formData.origin}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, origin: e.target.value }))
+                            }
+                            placeholder="e.g. Germany, China..."
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="productMaterial">Product Material</Label>
+                        <Input
+                            id="productMaterial"
+                            name="productMaterial"
+                            value={formData.productMaterial}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, productMaterial: e.target.value }))
+                            }
+                            placeholder="e.g. Stainless Steel, Plastic..."
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white py-2 border-t">
                 <Button type="button" variant="outline" onClick={onCancel}>
                     Cancel
                 </Button>
