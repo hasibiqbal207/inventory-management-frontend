@@ -69,7 +69,6 @@ export interface Product {
     _id: string;
     productName: string;
     description: string;
-    price: number;
     category: string;
     stockQuantity: number;
     minStockLevel: number;
@@ -85,7 +84,6 @@ export interface Product {
 export interface CreateProductDTO {
     productName: string;
     description: string;
-    price: number;
     category: string;
     sku: string;
     stockQuantity?: number;
@@ -252,8 +250,12 @@ export interface CreateWarehouseDTO {
         totalArea: number;
         totalCapacity: number;
     };
-    operatingHours: OperatingHours;
-    features: string[];
+    operatingHours: {
+        start: string;
+        end: string;
+        timezone: string;
+    };
+    features?: string[];
     notes?: string;
 }
 
@@ -266,7 +268,7 @@ export interface SupplierContactPerson {
     lastName: string;
     email: string;
     phone: string;
-    position?: string;
+    position: string;
 }
 
 export interface Supplier {

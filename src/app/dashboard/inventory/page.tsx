@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useInventory, useAddStock, useRemoveStock, useTransferStock } from "@/hooks/use-inventory";
 import { useCreateInventoryRequest } from "@/hooks/use-inventory-requests";
 import { useProducts } from "@/hooks/use-products";
+import { useWarehouses } from "@/hooks/use-warehouses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +16,17 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { AddStockForm } from "@/components/inventory/add-stock-form";
 import { RemoveStockForm } from "@/components/inventory/remove-stock-form";
 import { TransferStockForm } from "@/components/inventory/transfer-stock-form";
-import { Plus, Minus, Search, Warehouse, TrendingUp, TrendingDown, Package } from "lucide-react";
+import { Plus, Minus, Search, Warehouse, TrendingUp, TrendingDown, Package, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import type { AddStockDTO, RemoveStockDTO, Inventory, Product } from "@/types/api";
@@ -34,10 +42,16 @@ export default function InventoryPage() {
 }
 
 function InventoryPageContent() {
-    const inventoryQuery = useInventory();
+    const [page, setPage] = useState(1);
+    const [warehouseFilter, setWarehouseFilter] = useState<string | undefined>();
+    const limit = 20;
+
+    const inventoryQuery = useInventory(page, limit, warehouseFilter);
     const productsQuery = useProducts();
-    const { data: inventory, isLoading: inventoryLoading } = inventoryQuery;
+    const warehousesQuery = useWarehouses();
+    const { data: inventoryData, isLoading: inventoryLoading } = inventoryQuery;
     const { data: products, isLoading: productsLoading } = productsQuery;
+    const { data: warehouses, isLoading: warehousesLoading } = warehousesQuery;
     const addStock = useAddStock();
     const removeStock = useRemoveStock();
     const transferStock = useTransferStock();
@@ -54,7 +68,10 @@ function InventoryPageContent() {
     const canManageStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
     const canTransferStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
 
-    const isLoading = inventoryLoading || productsLoading;
+    const inventory = inventoryData?.inventory || [];
+    const totalPages = inventoryData?.totalPages || 1;
+
+    const isLoading = inventoryLoading || productsLoading || warehousesLoading;
 
     // Get product details for inventory items
     const getProductDetails = (productId: string | Product) => {
@@ -64,18 +81,19 @@ function InventoryPageContent() {
         return productId;
     };
 
-    // Filter products based on search
-    const filteredProducts = products?.filter((product) =>
-        product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter inventory based on search
+    const filteredInventory = inventory?.filter((item) => {
+        const product = getProductDetails(item.productId);
+        if (!product) return false;
+        return product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.category.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     // Calculate stock statistics
     const totalProducts = products?.length || 0;
     const lowStockProducts = products?.filter((p) => p.stockQuantity < 10).length || 0;
     const outOfStockProducts = products?.filter((p) => p.stockQuantity === 0).length || 0;
-    const totalStockValue = products?.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0) || 0;
 
     const handleAddStock = async (data: AddStockDTO) => {
         if (isStaff) {
@@ -217,26 +235,11 @@ function InventoryPageContent() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                                <p className="text-2xl font-bold text-green-600 mt-2">
-                                    ${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
-                            </div>
-                            <div className="bg-green-500 p-3 rounded-lg">
-                                <TrendingUp className="w-6 h-6 text-white" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
-            {/* Search */}
-            <div className="mb-6">
-                <div className="relative max-w-md">
+            {/* Search and Filters */}
+            <div className="mb-6 flex gap-4">
+                <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <Input
                         type="text"
@@ -246,10 +249,26 @@ function InventoryPageContent() {
                         className="pl-10"
                     />
                 </div>
+                <Select value={warehouseFilter || "all"} onValueChange={(value) => {
+                    setWarehouseFilter(value === "all" ? undefined : value);
+                    setPage(1);
+                }}>
+                    <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="All Warehouses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Warehouses</SelectItem>
+                        {warehouses?.map((warehouse) => (
+                            <SelectItem key={warehouse._id} value={warehouse._id}>
+                                {warehouse.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
             {/* Inventory Table */}
-            {filteredProducts && filteredProducts.length > 0 ? (
+            {filteredInventory && filteredInventory.length > 0 ? (
                 <Card>
                     <CardHeader>
                         <CardTitle>Stock Levels</CardTitle>
@@ -262,23 +281,29 @@ function InventoryPageContent() {
                                         <th className="text-left py-3 px-4 font-semibold text-gray-700">Product</th>
                                         <th className="text-left py-3 px-4 font-semibold text-gray-700">SKU</th>
                                         <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
+                                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Warehouse</th>
                                         <th className="text-right py-3 px-4 font-semibold text-gray-700">Quantity</th>
-                                        <th className="text-right py-3 px-4 font-semibold text-gray-700">Value</th>
                                         <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
                                         <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredProducts.map((product) => {
-                                        const status = getStockStatus(product.stockQuantity, product.minStockLevel, product.maxStockLevel);
-                                        const value = product.price * product.stockQuantity;
+                                    {filteredInventory.map((item) => {
+                                        const product = getProductDetails(item.productId);
+                                        if (!product) return null;
+
+                                        const warehouse = typeof item.warehouseId === 'string'
+                                            ? warehouses?.find(w => w._id === item.warehouseId)
+                                            : item.warehouseId;
+
+                                        const status = getStockStatus(item.quantity, item.minimumStockLevel, item.maximumStockLevel);
 
                                         return (
-                                            <tr key={product._id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <tr key={item._id} className="border-b border-gray-100 hover:bg-gray-50">
                                                 <td className="py-3 px-4">
                                                     <div>
                                                         <p className="font-medium text-gray-900">{product.productName}</p>
-                                                        <p className="text-sm text-gray-500">{product.description.substring(0, 50)}...</p>
+                                                        <p className="text-sm text-gray-500">{product.description?.substring(0, 50) || 'No description'}...</p>
                                                     </div>
                                                 </td>
                                                 <td className="py-3 px-4">
@@ -287,17 +312,15 @@ function InventoryPageContent() {
                                                 <td className="py-3 px-4">
                                                     <span className="text-sm">{product.category}</span>
                                                 </td>
-                                                <td className="py-3 px-4 text-right">
-                                                    <span className={`font-semibold ${product.stockQuantity === 0 ? 'text-red-600' :
-                                                        product.stockQuantity < 10 ? 'text-yellow-600' :
-                                                            'text-green-600'
-                                                        }`}>
-                                                        {product.stockQuantity}
-                                                    </span>
+                                                <td className="py-3 px-4">
+                                                    <span className="text-sm">{warehouse?.name || 'N/A'}</span>
                                                 </td>
                                                 <td className="py-3 px-4 text-right">
-                                                    <span className="font-medium">
-                                                        ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    <span className={`font-semibold ${item.quantity === 0 ? 'text-red-600' :
+                                                        item.quantity < item.minimumStockLevel ? 'text-yellow-600' :
+                                                            'text-green-600'
+                                                        }`}>
+                                                        {item.quantity}
                                                     </span>
                                                 </td>
                                                 <td className="py-3 px-4 text-center">
@@ -317,7 +340,7 @@ function InventoryPageContent() {
                                                                 size="sm"
                                                                 variant="outline"
                                                                 onClick={() => openRemoveStockDialog(product._id)}
-                                                                disabled={product.stockQuantity === 0}
+                                                                disabled={item.quantity === 0}
                                                             >
                                                                 <Minus className="w-4 h-4" />
                                                             </Button>
@@ -330,18 +353,47 @@ function InventoryPageContent() {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-4 py-3 border-t">
+                                <div className="text-sm text-gray-600">
+                                    Page {page} of {totalPages}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                                        disabled={page === 1}
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={page === totalPages}
+                                    >
+                                        Next
+                                        <ChevronRight className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             ) : (
                 <div className="text-center py-12">
                     <Warehouse className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {searchTerm ? "No products found" : "No inventory items yet"}
+                        {searchTerm ? "No inventory found" : "No inventory items yet"}
                     </h3>
                     <p className="text-gray-600">
                         {searchTerm
-                            ? "Try adjusting your search terms"
-                            : "Add products to start tracking inventory"}
+                            ? "Try adjusting your search terms or filters"
+                            : "Add stock to start tracking inventory"}
                     </p>
                 </div>
             )}

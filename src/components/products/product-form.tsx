@@ -22,7 +22,6 @@ export function ProductForm({
     const [formData, setFormData] = useState<CreateProductDTO>({
         productName: "",
         description: "",
-        price: 0,
         category: "",
         sku: "",
         stockQuantity: 0,
@@ -35,7 +34,6 @@ export function ProductForm({
             setFormData({
                 productName: product.productName,
                 description: product.description,
-                price: product.price,
                 category: product.category,
                 sku: product.sku,
                 stockQuantity: product.stockQuantity,
@@ -99,22 +97,7 @@ export function ProductForm({
                 />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="price">Price *</Label>
-                    <Input
-                        id="price"
-                        name="price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.price}
-                        onChange={handleChange}
-                        required
-                        placeholder="0.00"
-                    />
-                </div>
-
+            <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
                     <Input

@@ -22,6 +22,7 @@ export function WarehouseForm({
     const [formData, setFormData] = useState<CreateWarehouseDTO>({
         name: "",
         code: "",
+        type: "main",
         address: {
             street: "",
             city: "",
@@ -37,11 +38,11 @@ export function WarehouseForm({
         capacity: {
             totalArea: 0,
             totalCapacity: 0,
-            usedCapacity: 0,
         },
         operatingHours: {
-            open: "09:00",
-            close: "17:00",
+            start: "09:00",
+            end: "17:00",
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
     });
 
@@ -50,9 +51,13 @@ export function WarehouseForm({
             setFormData({
                 name: warehouse.name,
                 code: warehouse.code,
+                type: warehouse.type,
                 address: warehouse.address,
                 contactPerson: warehouse.contactPerson,
-                capacity: warehouse.capacity,
+                capacity: {
+                    totalArea: warehouse.capacity.totalArea,
+                    totalCapacity: warehouse.capacity.totalCapacity,
+                },
                 operatingHours: warehouse.operatingHours,
             });
         }
@@ -112,6 +117,22 @@ export function WarehouseForm({
                             placeholder="WH-001"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="type">Warehouse Type *</Label>
+                    <select
+                        id="type"
+                        name="type"
+                        value={formData.type}
+                        onChange={handleChange as any}
+                        required
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <option value="main">Main Warehouse</option>
+                        <option value="satellite">Satellite Warehouse</option>
+                        <option value="third-party">Third-Party Warehouse</option>
+                    </select>
                 </div>
             </div>
 
@@ -229,7 +250,7 @@ export function WarehouseForm({
             {/* Capacity */}
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Capacity</h3>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="capacity.totalArea">Total Area (m²) *</Label>
                         <Input
@@ -258,18 +279,7 @@ export function WarehouseForm({
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="capacity.usedCapacity">Used Capacity (m³)</Label>
-                        <Input
-                            id="capacity.usedCapacity"
-                            name="capacity.usedCapacity"
-                            type="number"
-                            min="0"
-                            value={formData.capacity.usedCapacity}
-                            onChange={handleChange}
-                            placeholder="0"
-                        />
-                    </div>
+
                 </div>
             </div>
 
@@ -278,28 +288,40 @@ export function WarehouseForm({
                 <h3 className="text-lg font-semibold">Operating Hours</h3>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="operatingHours.open">Opening Time *</Label>
+                        <Label htmlFor="operatingHours.start">Opening Time *</Label>
                         <Input
-                            id="operatingHours.open"
-                            name="operatingHours.open"
+                            id="operatingHours.start"
+                            name="operatingHours.start"
                             type="time"
-                            value={formData.operatingHours.open}
+                            value={formData.operatingHours.start}
                             onChange={handleChange}
                             required
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="operatingHours.close">Closing Time *</Label>
+                        <Label htmlFor="operatingHours.end">Closing Time *</Label>
                         <Input
-                            id="operatingHours.close"
-                            name="operatingHours.close"
+                            id="operatingHours.end"
+                            name="operatingHours.end"
                             type="time"
-                            value={formData.operatingHours.close}
+                            value={formData.operatingHours.end}
                             onChange={handleChange}
                             required
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="operatingHours.timezone">Timezone *</Label>
+                    <Input
+                        id="operatingHours.timezone"
+                        name="operatingHours.timezone"
+                        value={formData.operatingHours.timezone}
+                        onChange={handleChange}
+                        required
+                        placeholder="America/New_York"
+                    />
                 </div>
             </div>
 

@@ -161,10 +161,6 @@ function ProductsPageContent() {
 
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Price:</span>
-                                        <span className="font-semibold">{formatCurrency(product.price)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Category:</span>
                                         <span className="font-medium">{product.category}</span>
                                     </div>

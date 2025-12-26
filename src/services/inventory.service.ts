@@ -12,11 +12,18 @@ import type {
  */
 export const inventoryService = {
     /**
-     * Get all inventory items
+     * Get all inventory items with pagination and filtering
      */
-    async getAll(): Promise<Inventory[]> {
-        const response: any = await apiClient.get("/inventory");
-        return response.data.inventory;
+    async getAll(page: number = 1, limit: number = 20, warehouseId?: string): Promise<{ inventory: Inventory[]; total: number; page: number; totalPages: number }> {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
+        if (warehouseId) {
+            params.append('warehouseId', warehouseId);
+        }
+
+        const response: any = await apiClient.get(`/inventory?${params.toString()}`);
+        return response.data;
     },
 
     /**

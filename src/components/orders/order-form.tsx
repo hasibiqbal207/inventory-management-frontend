@@ -57,13 +57,8 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
         const newItems = [...items];
         newItems[index] = { ...newItems[index], [field]: value };
 
-        // Auto-fill unit price when product is selected
-        if (field === "productId") {
-            const product = products?.find((p) => p._id === value);
-            if (product) {
-                newItems[index].unitPrice = product.price;
-            }
-        }
+        // Note: Unit price must be entered manually as products no longer have a fixed price
+        // Prices vary per purchase order
 
         setItems(newItems);
     };
@@ -214,7 +209,7 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
                                     <option value="">Select product</option>
                                     {products?.map((product) => (
                                         <option key={product._id} value={product._id}>
-                                            {product.productName} - {getCurrencySymbol(currency)}{product.price} (Stock: {product.stockQuantity})
+                                            {product.productName} (Stock: {product.stockQuantity})
                                         </option>
                                     ))}
                                 </select>

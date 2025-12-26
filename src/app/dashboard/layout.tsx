@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { UserProfileDialog } from "@/components/profile/user-profile-dialog";
+import { formatRole } from "@/lib/format";
 import Link from "next/link";
 import {
     Package,
@@ -31,6 +34,7 @@ export default function DashboardLayout({
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuth();
     const router = useRouter();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     const handleLogout = async () => {
         await logout();
@@ -112,7 +116,17 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
                     {/* User Profile */}
                     <div className="p-4 border-t border-border">
-                        <div className="flex items-center mb-3">
+                        <div
+                            className="flex items-center mb-3 cursor-pointer hover:bg-accent/50 rounded-lg p-2 -m-2 transition-colors"
+                            onClick={() => setIsProfileOpen(true)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    setIsProfileOpen(true);
+                                }
+                            }}
+                        >
                             <div className="flex-shrink-0">
                                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
                                     {user?.firstName?.[0]}
@@ -123,7 +137,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                 <p className="text-sm font-medium text-foreground">
                                     {user?.firstName} {user?.lastName}
                                 </p>
-                                <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+                                <p className="text-xs text-muted-foreground">{user?.role && formatRole(user.role)}</p>
                             </div>
                         </div>
                         <Button
@@ -138,6 +152,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </div>
                 </div>
             </aside>
+
+            {/* User Profile Dialog */}
+            <UserProfileDialog
+                open={isProfileOpen}
+                onOpenChange={setIsProfileOpen}
+            />
 
             {/* Main Content */}
             <div className="pl-64">

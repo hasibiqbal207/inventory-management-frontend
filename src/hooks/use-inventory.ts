@@ -4,12 +4,12 @@ import type { AddStockDTO, RemoveStockDTO } from "@/types/api";
 import { toast } from "sonner";
 
 /**
- * Get all inventory items
+ * Get all inventory items with pagination and filtering
  */
-export function useInventory() {
+export function useInventory(page: number = 1, limit: number = 20, warehouseId?: string) {
     return useQuery({
-        queryKey: ["inventory"],
-        queryFn: () => inventoryService.getAll(),
+        queryKey: ["inventory", page, limit, warehouseId],
+        queryFn: () => inventoryService.getAll(page, limit, warehouseId),
     });
 }
 

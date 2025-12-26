@@ -16,6 +16,7 @@ import {
 import { Users, Shield, Trash2, Mail, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
+import { formatRole } from "@/lib/format";
 import { UserRole } from "@/types/api";
 
 const ROLES: UserRole[] = [
@@ -156,7 +157,7 @@ function UserManagementPageContent() {
                                         </td>
                                         <td className="py-3 px-4">
                                             <Badge variant={getRoleBadge(user.role)}>
-                                                {user.role.replace("_", " ").toUpperCase()}
+                                                {formatRole(user.role)}
                                             </Badge>
                                         </td>
                                         <td className="py-3 px-4">
@@ -216,7 +217,7 @@ function UserManagementPageContent() {
                                     onClick={() => updateRoleMutation.mutate({ id: selectedUser._id, role })}
                                     disabled={updateRoleMutation.isPending}
                                 >
-                                    {role.replace("_", " ").toUpperCase()}
+                                    {formatRole(role)}
                                 </Button>
                             ))}
                         </div>

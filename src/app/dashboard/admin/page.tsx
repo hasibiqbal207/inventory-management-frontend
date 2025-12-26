@@ -39,18 +39,11 @@ function AdminDashboardPageContent() {
     });
 
     // Fetch quick stats
-    const { data: stats } = useQuery({
+    const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ["admin-stats"],
         queryFn: async () => {
-            // This would be a real endpoint in production
-            return {
-                totalUsers: 24,
-                totalProducts: 156,
-                totalOrders: 89,
-                totalRevenue: 45678.90,
-                lowStockItems: 12,
-                pendingOrders: 8,
-            };
+            const response: any = await apiClient.get("/system/admin-stats");
+            return response.data;
         },
     });
 
@@ -71,7 +64,11 @@ function AdminDashboardPageContent() {
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Total Users</p>
                                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                                    {stats?.totalUsers || 0}
+                                    {statsLoading ? (
+                                        <span className="inline-block h-9 w-16 bg-gray-200 animate-pulse rounded"></span>
+                                    ) : (
+                                        stats?.totalUsers || 0
+                                    )}
                                 </p>
                             </div>
                             <div className="bg-blue-500 p-3 rounded-lg">
@@ -87,7 +84,11 @@ function AdminDashboardPageContent() {
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Total Products</p>
                                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                                    {stats?.totalProducts || 0}
+                                    {statsLoading ? (
+                                        <span className="inline-block h-9 w-16 bg-gray-200 animate-pulse rounded"></span>
+                                    ) : (
+                                        stats?.totalProducts || 0
+                                    )}
                                 </p>
                             </div>
                             <div className="bg-green-500 p-3 rounded-lg">
@@ -103,7 +104,11 @@ function AdminDashboardPageContent() {
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Total Orders</p>
                                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                                    {stats?.totalOrders || 0}
+                                    {statsLoading ? (
+                                        <span className="inline-block h-9 w-16 bg-gray-200 animate-pulse rounded"></span>
+                                    ) : (
+                                        stats?.totalOrders || 0
+                                    )}
                                 </p>
                             </div>
                             <div className="bg-purple-500 p-3 rounded-lg">
@@ -119,7 +124,11 @@ function AdminDashboardPageContent() {
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                                 <p className="text-2xl font-bold text-green-600 mt-2">
-                                    {formatCurrency(stats?.totalRevenue || 0)}
+                                    {statsLoading ? (
+                                        <span className="inline-block h-8 w-24 bg-gray-200 animate-pulse rounded"></span>
+                                    ) : (
+                                        formatCurrency(stats?.totalRevenue || 0)
+                                    )}
                                 </p>
                             </div>
                             <div className="bg-green-500 p-3 rounded-lg">

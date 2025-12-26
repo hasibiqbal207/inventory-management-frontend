@@ -150,22 +150,14 @@ export default function ProductDetailPage({
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Pricing & Stock</CardTitle>
+                            <CardTitle>Stock Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600">Price</label>
-                                    <p className="mt-1 text-2xl font-bold text-gray-900">
-                                        {formatCurrency(product.price)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600">Stock Quantity</label>
-                                    <p className={`mt-1 text-2xl font-bold ${product.stockQuantity < 10 ? 'text-red-600' : 'text-green-600'}`}>
-                                        {product.stockQuantity} units
-                                    </p>
-                                </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-600">Stock Quantity</label>
+                                <p className={`mt-1 text-2xl font-bold ${product.stockQuantity < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                                    {product.stockQuantity} units
+                                </p>
                             </div>
 
                             {product.stockQuantity < 10 && (
@@ -211,18 +203,16 @@ export default function ProductDetailPage({
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Total Value</span>
-                                <span className="text-sm font-semibold">
-                                    {formatCurrency(product.price * product.stockQuantity)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Unit Price</span>
-                                <span className="text-sm font-semibold">{formatCurrency(product.price)}</span>
-                            </div>
-                            <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Available Stock</span>
                                 <span className="text-sm font-semibold">{product.stockQuantity}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Min Stock Level</span>
+                                <span className="text-sm font-semibold">{product.minStockLevel}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Max Stock Level</span>
+                                <span className="text-sm font-semibold">{product.maxStockLevel}</span>
                             </div>
                         </CardContent>
                     </Card>

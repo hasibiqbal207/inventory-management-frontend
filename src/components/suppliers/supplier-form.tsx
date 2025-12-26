@@ -26,6 +26,7 @@ export function SupplierForm({
             lastName: "",
             email: "",
             phone: "",
+            position: "",
         },
         email: "",
         phone: "",
@@ -224,6 +225,18 @@ export function SupplierForm({
                             placeholder="+1 234 567 8900"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="contactPerson.position">Position *</Label>
+                    <Input
+                        id="contactPerson.position"
+                        name="contactPerson.position"
+                        value={formData.contactPerson.position}
+                        onChange={handleChange}
+                        required
+                        placeholder="Procurement Manager"
+                    />
                 </div>
             </div>
 

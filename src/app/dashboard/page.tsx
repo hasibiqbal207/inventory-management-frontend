@@ -1,8 +1,14 @@
 "use client";
 
-import { Package, Warehouse, ShoppingCart, Bell } from "lucide-react";
+import { Package, Warehouse, ShoppingCart, Bell, BookOpen } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { useAuth } from "@/contexts/auth-context";
+import { formatRole } from "@/lib/format";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
+import { ModuleGuideCard } from "@/components/dashboard/module-guide-card";
+import { getModuleGuidesByRole } from "@/config/module-guides";
 
 export default function DashboardPage() {
     return (
@@ -13,54 +19,74 @@ export default function DashboardPage() {
 }
 
 function DashboardPageContent() {
-    const stats = [
+    const { user } = useAuth();
+
+    // Fetch dashboard stats
+    const { data: stats, isLoading } = useQuery({
+        queryKey: ["dashboard-stats"],
+        queryFn: async () => {
+            const response: any = await apiClient.get("/system/dashboard-stats");
+            return response.data;
+        },
+    });
+
+    const statCards = [
         {
             name: "Total Products",
-            value: "0",
+            value: stats?.totalProducts || 0,
             icon: Package,
             color: "bg-blue-500",
         },
         {
             name: "Warehouses",
-            value: "0",
+            value: stats?.totalWarehouses || 0,
             icon: Warehouse,
             color: "bg-green-500",
         },
         {
             name: "Pending Orders",
-            value: "0",
+            value: stats?.pendingOrders || 0,
             icon: ShoppingCart,
             color: "bg-yellow-500",
         },
         {
             name: "Active Alerts",
-            value: "0",
+            value: stats?.activeAlerts || 0,
             icon: Bell,
             color: "bg-red-500",
         },
     ];
 
+    // Get role-based module guides
+    const moduleGuides = user ? getModuleGuidesByRole(user.role) : [];
+
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                <h1 className="text-3xl font-bold text-foreground">
+                    Welcome back, {user?.firstName}!
+                </h1>
                 <p className="text-muted-foreground mt-2">
-                    Welcome to your Inventory Management System
+                    Here's an overview of your inventory system
                 </p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat) => (
+                {statCards.map((stat) => (
                     <div
                         key={stat.name}
-                        className="bg-card rounded-lg shadow p-6 border border-border"
+                        className="bg-card rounded-lg shadow p-6 border border-border hover:shadow-lg transition-shadow duration-300"
                     >
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
                                 <p className="text-3xl font-bold text-foreground mt-2">
-                                    {stat.value}
+                                    {isLoading ? (
+                                        <span className="inline-block h-9 w-16 bg-gray-200 animate-pulse rounded"></span>
+                                    ) : (
+                                        stat.value
+                                    )}
                                 </p>
                             </div>
                             <div className={`${stat.color} p-3 rounded-lg`}>
@@ -71,49 +97,35 @@ function DashboardPageContent() {
                 ))}
             </div>
 
-            {/* Welcome Card */}
-            <div className="bg-card rounded-lg shadow p-8 border border-border">
-                <h2 className="text-2xl font-bold text-foreground mb-4">
-                    Getting Started
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                    Your inventory management system is ready to use. Here are some quick
-                    actions to get started:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border border-border rounded-lg p-4">
-                        <h3 className="font-semibold text-foreground mb-2">
-                            📦 Add Products
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Start by adding products to your inventory catalog.
-                        </p>
+            {/* Role-Based Module Guides */}
+            <div className="mb-8">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <BookOpen className="w-6 h-6 text-primary" />
                     </div>
-                    <div className="border border-border rounded-lg p-4">
-                        <h3 className="font-semibold text-foreground mb-2">
-                            🏢 Create Warehouses
-                        </h3>
+                    <div>
+                        <h2 className="text-2xl font-bold text-foreground">
+                            Your Module Guides
+                        </h2>
                         <p className="text-sm text-muted-foreground">
-                            Set up warehouse locations to track inventory.
-                        </p>
-                    </div>
-                    <div className="border border-border rounded-lg p-4">
-                        <h3 className="font-semibold text-foreground mb-2">
-                            🤝 Add Suppliers
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Manage your supplier relationships and contacts.
-                        </p>
-                    </div>
-                    <div className="border border-border rounded-lg p-4">
-                        <h3 className="font-semibold text-foreground mb-2">
-                            📋 Create Orders
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Process purchase and sales orders efficiently.
+                            Quick access to features available for your role: <span className="font-semibold">{user?.role && formatRole(user.role)}</span>
                         </p>
                     </div>
                 </div>
+
+                {moduleGuides.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {moduleGuides.map((guide) => (
+                            <ModuleGuideCard key={guide.id} guide={guide} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-card rounded-lg shadow p-8 border border-border text-center">
+                        <p className="text-muted-foreground">
+                            No module guides available for your role. Please contact your administrator.
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );
