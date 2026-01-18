@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
@@ -152,21 +153,21 @@ export default function ProductDetailPage({
                         <CardHeader>
                             <CardTitle>Stock Information</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent>
                             <div>
-                                <label className="text-sm font-medium text-gray-600">Stock Quantity</label>
-                                <p className={`mt-1 text-2xl font-bold ${product.stockQuantity < 10 ? 'text-red-600' : 'text-green-600'}`}>
-                                    {product.stockQuantity} units
+                                <label className="text-sm font-medium text-gray-600">Stock Levels</label>
+                                <div className="mt-2">
+                                    <Link
+                                        href="/dashboard/inventory"
+                                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+                                    >
+                                        View Inventory Details →
+                                    </Link>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Stock is tracked per warehouse in the Inventory section
                                 </p>
                             </div>
-
-                            {product.stockQuantity < 10 && (
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                                    <p className="text-sm text-yellow-800">
-                                        ⚠️ Low stock alert: Only {product.stockQuantity} units remaining
-                                    </p>
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -203,8 +204,8 @@ export default function ProductDetailPage({
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Available Stock</span>
-                                <span className="text-sm font-semibold">{product.stockQuantity}</span>
+                                <span className="text-sm text-gray-600">Stock Tracking</span>
+                                <Link href="/dashboard/inventory" className="text-sm font-semibold text-blue-600 hover:text-blue-800">View →</Link>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Min Stock Level</span>

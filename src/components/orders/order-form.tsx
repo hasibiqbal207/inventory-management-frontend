@@ -209,7 +209,7 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
                                     <option value="">Select product</option>
                                     {products?.map((product) => (
                                         <option key={product._id} value={product._id}>
-                                            {product.productName} (Stock: {product.stockQuantity})
+                                            {product.productName} (SKU: {product.sku})
                                         </option>
                                     ))}
                                 </select>

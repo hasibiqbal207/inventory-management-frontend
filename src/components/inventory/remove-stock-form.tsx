@@ -38,7 +38,6 @@ export function RemoveStockForm({
     const [manualReference, setManualReference] = useState("");
 
     const selectedProduct = products?.find((p) => p._id === formData.productId);
-    const maxQuantity = selectedProduct?.stockQuantity || 0;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,7 +50,7 @@ export function RemoveStockForm({
             finalData.reference = manualReference;
         }
 
-        if (finalData.quantity <= 0 || finalData.quantity > maxQuantity || !finalData.warehouseId || !finalData.reason || !finalData.reference) {
+        if (finalData.quantity <= 0 || !finalData.warehouseId || !finalData.reason || !finalData.reference) {
             return;
         }
         onSubmit(finalData);
@@ -111,13 +110,11 @@ export function RemoveStockForm({
                 </div>
             </div>
 
-            {selectedProduct && (
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                    <p className="text-sm text-blue-800">
-                        Available stock: <strong>{selectedProduct.stockQuantity}</strong> units
-                    </p>
-                </div>
-            )}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <p className="text-sm text-blue-800">
+                    Note: Stock is tracked per warehouse. Ensure you select the correct warehouse.
+                </p>
+            </div>
 
             <div className="flex items-center space-x-2 py-2">
                 <Checkbox
@@ -138,7 +135,7 @@ export function RemoveStockForm({
                         name="quantity"
                         type="number"
                         min="1"
-                        max={maxQuantity}
+                        max={999999}
                         value={formData.quantity || ""}
                         onChange={(e) =>
                             setFormData((prev) => ({
@@ -214,7 +211,7 @@ export function RemoveStockForm({
                 <Button
                     type="submit"
                     variant="destructive"
-                    disabled={isLoading || formData.quantity <= 0 || formData.quantity > maxQuantity || !formData.warehouseId || !formData.reason || !formData.reference}
+                    disabled={isLoading || formData.quantity <= 0 || !formData.warehouseId || !formData.reason || !formData.reference}
                 >
                     {isLoading ? "Submitting..." : "Submit"}
                 </Button>

@@ -90,10 +90,26 @@ function InventoryPageContent() {
             product.category.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-    // Calculate stock statistics
+    // Calculate stock statistics from actual inventory data
     const totalProducts = products?.length || 0;
-    const lowStockProducts = products?.filter((p) => p.stockQuantity < 10).length || 0;
-    const outOfStockProducts = products?.filter((p) => p.stockQuantity === 0).length || 0;
+
+    // Calculate low stock and out of stock from inventory records
+    const productStockStatus = new Map<string, { total: number; isLow: boolean; isOut: boolean }>();
+
+    inventory?.forEach((inv) => {
+        const productId = typeof inv.productId === 'string' ? inv.productId : inv.productId._id;
+        const existing = productStockStatus.get(productId) || { total: 0, isLow: false, isOut: false };
+        existing.total += inv.quantity;
+
+        // Check if any warehouse has low stock or is out of stock
+        if (inv.quantity === 0) existing.isOut = true;
+        if (inv.quantity < inv.minimumStockLevel) existing.isLow = true;
+
+        productStockStatus.set(productId, existing);
+    });
+
+    const lowStockProducts = Array.from(productStockStatus.values()).filter(s => s.isLow).length;
+    const outOfStockProducts = Array.from(productStockStatus.values()).filter(s => s.isOut).length;
 
     const handleAddStock = async (data: AddStockDTO) => {
         if (isStaff) {

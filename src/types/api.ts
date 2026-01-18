@@ -70,7 +70,6 @@ export interface Product {
     productName: string;
     description: string;
     category: string;
-    stockQuantity: number;
     minStockLevel: number;
     maxStockLevel: number;
     sku: string;
@@ -86,7 +85,6 @@ export interface CreateProductDTO {
     description: string;
     category: string;
     sku: string;
-    stockQuantity?: number;
     minStockLevel?: number;
     maxStockLevel?: number;
 }

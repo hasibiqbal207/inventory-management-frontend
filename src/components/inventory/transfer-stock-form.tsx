@@ -78,7 +78,7 @@ export function TransferStockForm({
                     <option value="">Select a product</option>
                     {products?.map((product) => (
                         <option key={product._id} value={product._id}>
-                            {product.productName} (SKU: {product.sku}) - Total Stock: {product.stockQuantity}
+                            {product.productName} (SKU: {product.sku})
                         </option>
                     ))}
                 </select>
@@ -133,7 +133,6 @@ export function TransferStockForm({
                     name="quantity"
                     type="number"
                     min="1"
-                    max={selectedProduct?.stockQuantity}
                     value={formData.quantity || ""}
                     onChange={(e) =>
                         setFormData((prev) => ({
@@ -144,11 +143,9 @@ export function TransferStockForm({
                     required
                     placeholder="Enter quantity"
                 />
-                {selectedProduct && (
-                    <p className="text-xs text-gray-500">
-                        Available total: {selectedProduct.stockQuantity} units
-                    </p>
-                )}
+                <p className="text-xs text-gray-500">
+                    Note: Stock is tracked per warehouse. Ensure sufficient stock in source warehouse.
+                </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

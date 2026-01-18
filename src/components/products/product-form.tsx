@@ -24,7 +24,6 @@ export function ProductForm({
         description: "",
         category: "",
         sku: "",
-        stockQuantity: 0,
         minStockLevel: 10,
         maxStockLevel: 1000,
     });
@@ -36,7 +35,6 @@ export function ProductForm({
                 description: product.description,
                 category: product.category,
                 sku: product.sku,
-                stockQuantity: product.stockQuantity,
                 minStockLevel: product.minStockLevel,
                 maxStockLevel: product.maxStockLevel,
             });
@@ -107,19 +105,6 @@ export function ProductForm({
                         onChange={handleChange}
                         required
                         placeholder="e.g., Electronics"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="stockQuantity">Stock Quantity</Label>
-                    <Input
-                        id="stockQuantity"
-                        name="stockQuantity"
-                        type="number"
-                        min="0"
-                        value={formData.stockQuantity}
-                        onChange={handleChange}
-                        placeholder="0"
                     />
                 </div>
             </div>

@@ -46,20 +46,32 @@ apiClient.interceptors.response.use(
         if (error.response) {
             const apiError = error.response.data;
 
-            // Handle token expiration
+            // Handle token expiration/invalidity
+            // Only logout on specific authentication errors, not all 401s
             if (
                 apiError?.error?.code === "TOKEN_EXPIRED" ||
                 apiError?.error?.code === "TOKEN_INVALID" ||
-                error.response.status === 401
+                apiError?.error?.code === "INVALID_TOKEN" ||
+                apiError?.error?.code === "NO_TOKEN"
             ) {
+                console.warn("Authentication error detected:", apiError?.error?.code);
                 // Clear token and redirect to login
                 if (typeof window !== "undefined") {
                     localStorage.removeItem("auth_token");
                     // Only redirect if not already on login page
                     if (!window.location.pathname.includes("/login")) {
+                        console.log("Redirecting to login due to auth error");
                         window.location.href = "/login";
                     }
                 }
+            } else if (error.response.status === 401) {
+                // Log 401 errors that are NOT token-related for debugging
+                console.warn("401 Unauthorized (non-token):", {
+                    url: error.config?.url,
+                    code: apiError?.error?.code,
+                    message: apiError?.error?.message
+                });
+                // Don't logout - this might be a permission issue or other 401
             }
 
             // Return the API error

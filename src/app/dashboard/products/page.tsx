@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,9 +167,9 @@ function ProductsPageContent() {
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Stock:</span>
-                                        <span className={`font-medium ${product.stockQuantity < 10 ? 'text-destructive' : 'text-green-500'}`}>
-                                            {product.stockQuantity} units
-                                        </span>
+                                        <Link href="/dashboard/inventory" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            View Stock →
+                                        </Link>
                                     </div>
                                 </div>
 
