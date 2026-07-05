@@ -43,6 +43,16 @@ export const authService = {
     },
 
     /**
+     * Fetch the currently authenticated user's profile.
+     * Used to rehydrate session state on page load, since the JWT alone
+     * doesn't carry the full user record.
+     */
+    async getCurrentUser(): Promise<User> {
+        const response: any = await apiClient.get("/auth/me");
+        return response.data.user;
+    },
+
+    /**
      * Logout user
      */
     async logout(): Promise<void> {

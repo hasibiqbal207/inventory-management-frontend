@@ -166,6 +166,10 @@ function ProductsPageContent() {
                                         <span className="font-medium">{product.category}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Unit Price:</span>
+                                        <span className="font-medium">{formatCurrency(product.price)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Stock:</span>
                                         <Link href="/dashboard/inventory" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                             View Stock →

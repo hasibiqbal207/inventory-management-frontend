@@ -2,15 +2,44 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    AreaChart,
+    Area,
+} from "recharts";
 import { reportsService } from "@/services/reports.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, TrendingUp, TrendingDown, Package, DollarSign, Download } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { exportRowsToCsv } from "@/lib/export";
 
 import { useAuth } from "@/contexts/auth-context";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
+
+const CHART_COLOR = "#2563eb";
+const CHART_COLOR_SOFT = "#93c5fd";
+
+function ChartTooltipCurrency({ active, payload, label }: any) {
+    if (!active || !payload?.length) return null;
+    return (
+        <div className="bg-white border border-gray-200 rounded-md shadow-sm px-3 py-2 text-sm">
+            <p className="font-medium text-gray-900">{label}</p>
+            {payload.map((entry: any) => (
+                <p key={entry.dataKey} className="text-gray-600">
+                    {entry.name}: {formatCurrency(entry.value)}
+                </p>
+            ))}
+        </div>
+    );
+}
 
 export default function ReportsPage() {
     return (
@@ -53,6 +82,62 @@ function ReportsPageContent() {
 
     const isLoading = inventoryLoading || salesLoading || supplierLoading || damageLoading;
 
+    const handleExport = () => {
+        if (reportType === "inventory" && inventoryReport) {
+            exportRowsToCsv(
+                "inventory-report",
+                [
+                    { key: "category", label: "Category" },
+                    { key: "count", label: "Product Count" },
+                    { key: "value", label: "Stock Value" },
+                ],
+                inventoryReport.byCategory || []
+            );
+        } else if (reportType === "sales" && salesReport) {
+            exportRowsToCsv(
+                "sales-report",
+                [
+                    { key: "date", label: "Date" },
+                    { key: "orders", label: "Orders" },
+                    { key: "revenue", label: "Revenue" },
+                ],
+                salesReport.salesByPeriod || []
+            );
+        } else if (reportType === "suppliers" && supplierReport) {
+            exportRowsToCsv(
+                "supplier-performance-report",
+                [
+                    { key: "companyName", label: "Supplier" },
+                    { key: "totalOrders", label: "Total Orders" },
+                    { key: "totalValue", label: "Total Value" },
+                    { key: "avgFulfillmentDays", label: "Avg. Fulfillment (days)" },
+                    { key: "reliability", label: "Reliability %" },
+                ],
+                supplierReport
+            );
+        } else if (reportType === "damage" && damageReport) {
+            exportRowsToCsv(
+                "damaged-stock-report",
+                [
+                    { key: "date", label: "Date" },
+                    { key: "productName", label: "Product" },
+                    { key: "sku", label: "SKU" },
+                    { key: "warehouseName", label: "Warehouse" },
+                    { key: "quantity", label: "Quantity" },
+                    { key: "value", label: "Loss Value" },
+                    { key: "reference", label: "Reference" },
+                ],
+                damageReport
+            );
+        }
+    };
+
+    const hasExportableData =
+        (reportType === "inventory" && !!inventoryReport) ||
+        (reportType === "sales" && !!salesReport) ||
+        (reportType === "suppliers" && !!supplierReport) ||
+        (reportType === "damage" && !!damageReport);
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -60,7 +145,7 @@ function ReportsPageContent() {
                     <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
                     <p className="text-gray-600 mt-1">View insights and performance metrics</p>
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleExport} disabled={!hasExportableData}>
                     <Download className="w-4 h-4 mr-2" />
                     Export Report
                 </Button>
@@ -174,9 +259,22 @@ function ReportsPageContent() {
                     {/* By Category */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Inventory by Category</CardTitle>
+                            <CardTitle>Inventory Value by Category</CardTitle>
                         </CardHeader>
                         <CardContent>
+                            {inventoryReport.byCategory && inventoryReport.byCategory.length > 0 && (
+                                <div className="h-72 mb-6">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={inventoryReport.byCategory} margin={{ left: 8, right: 8 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                            <XAxis dataKey="category" tick={{ fontSize: 12 }} interval={0} angle={-15} textAnchor="end" height={50} />
+                                            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} width={90} />
+                                            <Tooltip content={<ChartTooltipCurrency />} />
+                                            <Bar dataKey="value" name="Stock Value" fill={CHART_COLOR} radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
                             <div className="space-y-3">
                                 {inventoryReport.byCategory?.map((cat, idx) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -231,12 +329,53 @@ function ReportsPageContent() {
                         </Card>
                     </div>
 
+                    {/* Revenue Over Time */}
+                    {salesReport.salesByPeriod && salesReport.salesByPeriod.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Revenue Over Time</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-72">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={salesReport.salesByPeriod} margin={{ left: 8, right: 8 }}>
+                                            <defs>
+                                                <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor={CHART_COLOR} stopOpacity={0.35} />
+                                                    <stop offset="95%" stopColor={CHART_COLOR} stopOpacity={0.02} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                            <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} width={90} />
+                                            <Tooltip content={<ChartTooltipCurrency />} />
+                                            <Area type="monotone" dataKey="revenue" name="Revenue" stroke={CHART_COLOR} fill="url(#revenueFill)" strokeWidth={2} />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Top Products */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Top Selling Products</CardTitle>
                         </CardHeader>
                         <CardContent>
+                            {salesReport.topProducts && salesReport.topProducts.length > 0 && (
+                                <div className="h-64 mb-6">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={salesReport.topProducts} layout="vertical" margin={{ left: 8, right: 24 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                                            <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
+                                            <YAxis dataKey="productName" type="category" tick={{ fontSize: 12 }} width={140} />
+                                            <Tooltip content={<ChartTooltipCurrency />} />
+                                            <Bar dataKey="revenue" name="Revenue" fill={CHART_COLOR_SOFT} radius={[0, 4, 4, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
                             <div className="space-y-3">
                                 {salesReport.topProducts?.map((product, idx) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

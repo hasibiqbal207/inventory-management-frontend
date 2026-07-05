@@ -20,17 +20,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Check for existing session on mount
+    // Rehydrate the session on mount: a valid token alone doesn't carry the
+    // full user record, so fetch it before treating the user as logged in.
     useEffect(() => {
         const token = authService.getToken();
-        if (token) {
-            // Token exists, but we don't have user data
-            // In a real app, you might want to fetch user data from an endpoint
-            // For now, we'll just mark as not loading
+        if (!token) {
             setIsLoading(false);
-        } else {
-            setIsLoading(false);
+            return;
         }
+
+        authService
+            .getCurrentUser()
+            .then((fetchedUser) => setUser(fetchedUser))
+            .catch(() => authService.clearAuth())
+            .finally(() => setIsLoading(false));
     }, []);
 
     const login = useCallback(async (credentials: LoginCredentials) => {

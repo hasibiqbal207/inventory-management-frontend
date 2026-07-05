@@ -24,6 +24,7 @@ export function ProductForm({
         description: "",
         category: "",
         sku: "",
+        price: 0,
         minStockLevel: 10,
         maxStockLevel: 1000,
     });
@@ -35,6 +36,7 @@ export function ProductForm({
                 description: product.description,
                 category: product.category,
                 sku: product.sku,
+                price: product.price,
                 minStockLevel: product.minStockLevel,
                 maxStockLevel: product.maxStockLevel,
             });
@@ -105,6 +107,20 @@ export function ProductForm({
                         onChange={handleChange}
                         required
                         placeholder="e.g., Electronics"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="price">Unit Price</Label>
+                    <Input
+                        id="price"
+                        name="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={handleChange}
+                        placeholder="0.00"
                     />
                 </div>
             </div>
