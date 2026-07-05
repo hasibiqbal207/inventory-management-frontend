@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { categoriesService } from "@/services/categories.service";
 import type { Product, CreateProductDTO } from "@/types/api";
 
 interface ProductFormProps {
@@ -27,6 +30,11 @@ export function ProductForm({
         price: 0,
         minStockLevel: 10,
         maxStockLevel: 1000,
+    });
+
+    const { data: categories } = useQuery({
+        queryKey: ["categories", { isActive: true }],
+        queryFn: () => categoriesService.getAll(true),
     });
 
     useEffect(() => {
@@ -100,14 +108,21 @@ export function ProductForm({
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
-                    <Input
-                        id="category"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        required
-                        placeholder="e.g., Electronics"
-                    />
+                    <Select
+                        value={formData.category || undefined}
+                        onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+                    >
+                        <SelectTrigger id="category">
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories?.map((cat) => (
+                                <SelectItem key={cat._id} value={cat.name}>
+                                    {cat.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <div className="space-y-2">

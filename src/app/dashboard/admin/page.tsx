@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { systemService } from "@/services/system.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -29,13 +30,15 @@ export default function AdminDashboardPage() {
 }
 
 function AdminDashboardPageContent() {
-    // Fetch system metrics
+    // Fetch system metrics and health
     const { data: metrics } = useQuery({
         queryKey: ["admin-metrics"],
-        queryFn: async () => {
-            const response: any = await apiClient.get("/system/metrics");
-            return response.data;
-        },
+        queryFn: () => systemService.getMetrics(),
+    });
+
+    const { data: health } = useQuery({
+        queryKey: ["system-health"],
+        queryFn: () => systemService.getHealth(),
     });
 
     // Fetch quick stats
@@ -150,26 +153,32 @@ function AdminDashboardPageContent() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div className={`flex items-center justify-between p-3 rounded-lg ${health?.status === "healthy" ? "bg-green-50" : "bg-red-50"}`}>
                                 <div>
                                     <p className="font-medium text-gray-900">API Status</p>
-                                    <p className="text-sm text-gray-600">All systems operational</p>
+                                    <p className="text-sm text-gray-600">
+                                        {health?.status === "healthy" ? "All systems operational" : "Degraded or unhealthy"}
+                                    </p>
                                 </div>
-                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <div className={`w-3 h-3 rounded-full ${health?.status === "healthy" ? "bg-green-500" : "bg-red-500"}`}></div>
                             </div>
 
-                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div className={`flex items-center justify-between p-3 rounded-lg ${metrics?.database.status === "connected" ? "bg-green-50" : "bg-red-50"}`}>
                                 <div>
                                     <p className="font-medium text-gray-900">Database</p>
-                                    <p className="text-sm text-gray-600">Connected</p>
+                                    <p className="text-sm text-gray-600">
+                                        {metrics?.database.status === "connected" ? "Connected" : "Disconnected"}
+                                    </p>
                                 </div>
-                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <div className={`w-3 h-3 rounded-full ${metrics?.database.status === "connected" ? "bg-green-500" : "bg-red-500"}`}></div>
                             </div>
 
                             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                                 <div>
                                     <p className="font-medium text-gray-900">Uptime</p>
-                                    <p className="text-sm text-gray-600">{metrics?.uptime || "99.9%"}</p>
+                                    <p className="text-sm text-gray-600">
+                                        {metrics ? `${Math.floor(metrics.uptimeSeconds / 3600)}h ${Math.floor((metrics.uptimeSeconds % 3600) / 60)}m` : "—"}
+                                    </p>
                                 </div>
                                 <Activity className="w-5 h-5 text-blue-600" />
                             </div>
@@ -210,10 +219,14 @@ function AdminDashboardPageContent() {
                                 </Link>
                             </div>
 
-                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div className={`flex items-center justify-between p-3 rounded-lg ${metrics?.activeAlerts ? "bg-red-50" : "bg-green-50"}`}>
                                 <div>
                                     <p className="font-medium text-gray-900">System Alerts</p>
-                                    <p className="text-sm text-gray-600">No critical alerts</p>
+                                    <p className="text-sm text-gray-600">
+                                        {metrics?.activeAlerts
+                                            ? `${metrics.activeAlerts} active alert${metrics.activeAlerts === 1 ? "" : "s"}`
+                                            : "No active alerts"}
+                                    </p>
                                 </div>
                                 <Link href="/dashboard/alerts">
                                     <Button size="sm" variant="outline">

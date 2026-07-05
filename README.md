@@ -1,37 +1,39 @@
 # Inventory Management System - Frontend
 
-A modern, production-ready frontend for the Inventory Management System built with Next.js 15, TypeScript, and Tailwind CSS.
+A Next.js 15 / TypeScript frontend for the Inventory Management System, backed by
+a Node/Express/MongoDB API (see the sibling `inventory-management-backend` repo).
 
-## 🚀 Features
+## Features
 
-- **Authentication System** - Secure login and registration with JWT tokens
-- **Dashboard** - Overview with key metrics and statistics
-- **Multi-Warehouse Support** - Track inventory across multiple locations
-- **Order Management** - Handle purchase and sales orders
-- **Supplier Management** - Manage supplier relationships
-- **Real-time Alerts** - Notifications for low stock and system events
-- **Reports & Analytics** - Data visualization and insights
-- **Role-Based Access Control** - Admin and user roles with different permissions
+- **Authentication** - JWT login/registration, with session rehydration on page reload
+- **Role-Based Access Control** - ten distinct roles (see below), each with its own permitted actions and navigation
+- **Products & Categories** - product catalog with a shared, renameable category list
+- **Multi-Warehouse Inventory** - transactional add/remove/transfer stock, low-stock and out-of-stock indicators
+- **Inventory Requests** - an approval workflow for Warehouse Staff stock changes, reviewed by a supervisor/manager/admin
+- **Orders** - purchase and sales orders, multi-currency (USD/EUR/GBP/BDT), status workflow
+- **Suppliers & Warehouses** - full CRUD, contact/location details, capacity tracking
+- **Alerts** - severity-based alert feed with acknowledge/resolve/dismiss
+- **Reports & Analytics** - inventory, sales, supplier performance, and damaged-stock reports, with charts (recharts) and CSV export
+- **Admin** - dashboard overview, user management (role changes, deactivation), live system settings, and system metrics
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 18+ installed
 - Backend server running on `http://localhost:6002`
 - npm or yarn package manager
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **State Management**: TanStack Query (React Query)
 - **HTTP Client**: Axios
-- **Forms**: React Hook Form
-- **Validation**: Zod
+- **Charts**: Recharts
 - **Icons**: Lucide React
-- **Notifications**: Sonner
+- **Notifications**: Sonner (toasts)
 
-## 📦 Installation
+## Installation
 
 1. **Clone the repository** (if not already done)
 
@@ -55,49 +57,64 @@ npm run dev
 
 The application will be available at `http://localhost:3000`
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 src/
-├── app/                    # Next.js app directory
-│   ├── dashboard/         # Dashboard pages
-│   ├── login/             # Login page
-│   ├── register/          # Registration page
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
-│   └── providers.tsx      # App providers
-├── components/            # React components
-│   ├── auth/             # Authentication components
-│   └── ui/               # Reusable UI components
-├── contexts/             # React contexts
-│   └── auth-context.tsx  # Authentication context
-├── hooks/                # Custom React hooks
-├── lib/                  # Utilities and configurations
-│   ├── api-client.ts    # Axios instance
-│   ├── query-client.ts  # TanStack Query config
-│   └── utils.ts         # Utility functions
-├── services/            # API service layer
-│   └── auth.service.ts  # Authentication service
-└── types/               # TypeScript type definitions
-    └── api.ts           # API types and interfaces
+├── app/                          # Next.js App Router
+│   ├── dashboard/               # Protected dashboard routes (see Available Pages)
+│   ├── login/                   # Login page
+│   ├── register/                # Registration page
+│   ├── layout.tsx               # Root layout
+│   ├── page.tsx                 # Home page (redirects to dashboard or login)
+│   └── providers.tsx            # App providers (React Query, Auth, Toaster)
+├── components/                   # React components, grouped by feature
+│   ├── auth/                    # Protected route wrapper
+│   ├── products/ inventory/ orders/ warehouses/ suppliers/  # Per-module forms
+│   ├── dashboard/                # Dashboard-only components (module guides)
+│   ├── profile/                  # User profile dialog
+│   └── ui/                       # Reusable UI primitives (button, input, dialog, select, ...)
+├── contexts/
+│   └── auth-context.tsx          # Auth state, session rehydration via /auth/me
+├── hooks/                        # React Query hooks per module
+├── lib/
+│   ├── api-client.ts             # Axios instance + interceptors
+│   ├── query-client.ts           # TanStack Query config
+│   ├── export.ts                 # Client-side CSV export helper
+│   └── utils.ts, format.ts       # Formatting utilities
+├── services/                     # One file per API resource (products, inventory, orders, ...)
+└── types/
+    └── api.ts                    # Shared TypeScript types matching the backend API
 ```
 
-## 🔐 Authentication
+## Authentication
 
 The application uses JWT-based authentication:
 
 1. **Register**: Create a new account at `/register`
 2. **Login**: Sign in at `/login`
 3. **Protected Routes**: Dashboard and all sub-pages require authentication
-4. **Token Storage**: JWT tokens are stored in localStorage
-5. **Auto-redirect**: Unauthenticated users are redirected to login
+4. **Token Storage**: JWT stored in `localStorage`
+5. **Session Rehydration**: On page load, a stored token is verified against `GET /auth/me` to restore the full user profile — an invalid/expired token clears the session and redirects to login
 
 ### User Roles
 
-- **Admin**: Full access to all features including settings and user management
-- **User**: Standard access to view and manage inventory, orders, etc.
+The system uses ten roles for granular access control (see the backend's `ROLES.md` for the full permission matrix):
 
-## 📱 Available Pages
+| Role | Typical focus |
+|---|---|
+| `admin` | Full system access, including user management and settings |
+| `inventory_manager` | Product catalog, categories, stock levels, warehouse management |
+| `warehouse_supervisor` | Warehouse operations, stock transfers, request approvals |
+| `warehouse_staff` | Day-to-day stock adjustments via the request/approval workflow |
+| `procurement_officer` | Suppliers and purchase orders |
+| `sales_rep` | Sales orders and customer-facing product info |
+| `finance_officer` | Financial reports and inventory valuation |
+| `auditor` | View-only access to inventory history and reports |
+| `it_support` | System metrics, settings, and technical configuration |
+| `executive` | High-level dashboards and performance reports |
+
+## Available Pages
 
 ### Public Pages
 - `/` - Home (redirects to dashboard or login)
@@ -105,20 +122,24 @@ The application uses JWT-based authentication:
 - `/register` - User registration
 
 ### Protected Pages
-- `/dashboard` - Main dashboard with overview
-- `/dashboard/products` - Product management (coming soon)
-- `/dashboard/inventory` - Inventory tracking (coming soon)
-- `/dashboard/orders` - Order management (coming soon)
-- `/dashboard/suppliers` - Supplier management (coming soon)
-- `/dashboard/warehouses` - Warehouse management (coming soon)
-- `/dashboard/alerts` - Alert notifications (coming soon)
-- `/dashboard/reports` - Reports and analytics (coming soon)
+- `/dashboard` - Overview with role-aware quick actions
+- `/dashboard/products` and `/dashboard/products/[id]` - Product catalog
+- `/dashboard/categories` - Shared category list
+- `/dashboard/inventory` - Multi-warehouse stock, add/remove/transfer
+- `/dashboard/inventory/requests` - Approval queue for staff stock requests
+- `/dashboard/orders`, `/dashboard/orders/new`, `/dashboard/orders/[id]` - Purchase & sales orders
+- `/dashboard/suppliers` - Supplier directory
+- `/dashboard/warehouses` - Warehouse locations and capacity
+- `/dashboard/alerts` - Alert feed
+- `/dashboard/reports` - Inventory/sales/supplier/damage reports with charts and CSV export
 
 ### Admin-Only Pages
-- `/dashboard/admin/settings` - System settings (coming soon)
-- `/dashboard/admin/metrics` - System metrics (coming soon)
+- `/dashboard/admin` - Admin overview
+- `/dashboard/admin/users` - User management (role changes, deactivation)
+- `/dashboard/admin/settings` - System settings (admin, it_support)
+- `/dashboard/admin/metrics` - Live system/database metrics (admin, it_support)
 
-## 🔧 Development
+## Development
 
 ### Running the Development Server
 ```bash
@@ -140,67 +161,25 @@ npm start
 npm run lint
 ```
 
-## 🎨 UI Components
-
-The application uses custom UI components built with Tailwind CSS:
-
-- **Button** - Reusable button with variants (default, destructive, outline, ghost)
-- **Input** - Form input with consistent styling
-- **Label** - Form label component
-- More components will be added as needed
-
-## 📡 API Integration
+## API Integration
 
 The frontend integrates with the backend API using Axios:
 
-- **Base URL**: `http://localhost:6002/api`
-- **Authentication**: JWT tokens in Authorization header
-- **Error Handling**: Automatic token expiration handling and redirects
-- **Interceptors**: Request/response interceptors for auth and error handling
+- **Base URL**: `http://localhost:6002/api` (override via `NEXT_PUBLIC_API_URL`)
+- **Authentication**: JWT in the `Authorization` header, injected by a request interceptor
+- **Error Handling**: A response interceptor normalizes errors and logs out only on token-specific failures (expired/invalid/missing token), not on every 401
+- **Caching**: TanStack Query, 1 minute stale time, automatic invalidation on mutations
 
-### API Services
+See `src/services/*.service.ts` for the full list of API service modules — there is one per backend resource (auth, categories, products, inventory, inventory-requests, orders, warehouses, suppliers, alerts, reports, system, users).
 
-- `authService` - Authentication (login, register, logout)
-- More services will be added for each module
+## Known Gaps
 
-## 🚧 Current Status
+Tracked in the backend repo's `docs/FEATURE_BACKLOG.md`: no automated frontend
+tests yet, only the Inventory page has server-side pagination (other list
+pages load their full collection client-side), and there's no bulk-action or
+file import/export UI beyond the CSV report export.
 
-### ✅ Completed
-- [x] Project setup and dependencies
-- [x] Environment configuration
-- [x] API client with interceptors
-- [x] TypeScript type definitions
-- [x] Authentication system (login/register)
-- [x] Auth context and protected routes
-- [x] Dashboard layout with sidebar
-- [x] Basic UI components
-- [x] Home page with auto-redirect
-
-### 🔄 In Progress
-- [ ] Products module
-- [ ] Inventory module
-- [ ] Orders module
-- [ ] Warehouses module
-- [ ] Suppliers module
-- [ ] Alerts module
-- [ ] Reports module
-- [ ] Admin features
-
-## 🤝 Contributing
-
-1. Create a new branch for your feature
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
-## 📝 Notes
-
-- Ensure the backend server is running before starting the frontend
-- The application uses localStorage for token storage
-- All protected routes automatically redirect to login if not authenticated
-- Admin-only routes check user role before allowing access
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### CORS Errors
 Ensure the backend has CORS configured for `http://localhost:3000`
@@ -214,11 +193,6 @@ Check if:
 ### Module Not Found
 Run `npm install` to ensure all dependencies are installed
 
-## 📄 License
+## License
 
 This project is part of the Inventory Management System.
-
----
-
-**Version**: 1.0.0  
-**Last Updated**: December 2024

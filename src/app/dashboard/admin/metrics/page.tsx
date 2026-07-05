@@ -1,29 +1,50 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { systemService } from "@/services/system.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Database, Server, Clock } from "lucide-react";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
+function formatBytes(bytes: number): string {
+    if (!bytes) return "0 MB";
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${mb.toFixed(1)} MB`;
+}
+
+function formatUptime(seconds: number): string {
+    if (!seconds) return "0m";
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+
 export default function AdminMetricsPage() {
     return (
-        <ProtectedRoute allowedRoles={["admin"]}>
+        <ProtectedRoute allowedRoles={["admin", "it_support"]}>
             <AdminMetricsPageContent />
         </ProtectedRoute>
     );
 }
 
 function AdminMetricsPageContent() {
-    const { data: metrics, isLoading } = useQuery({
-        queryKey: ["system-metrics"],
-        queryFn: async () => {
-            const response: any = await apiClient.get("/system/metrics");
-            return response.data;
-        },
-        refetchInterval: 30000, // Refresh every 30 seconds
+    const { data: health, isLoading: healthLoading } = useQuery({
+        queryKey: ["system-health"],
+        queryFn: () => systemService.getHealth(),
+        refetchInterval: 30000,
     });
+
+    const { data: metrics, isLoading: metricsLoading } = useQuery({
+        queryKey: ["system-metrics"],
+        queryFn: () => systemService.getMetrics(),
+        refetchInterval: 30000,
+    });
+
+    const isLoading = healthLoading || metricsLoading;
 
     if (isLoading) {
         return (
@@ -32,6 +53,9 @@ function AdminMetricsPageContent() {
             </div>
         );
     }
+
+    const isHealthy = health?.status === "healthy";
+    const dbConnected = metrics?.database.status === "connected";
 
     return (
         <div>
@@ -46,9 +70,11 @@ function AdminMetricsPageContent() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">API Status</p>
-                                <p className="text-2xl font-bold text-green-500 mt-2">Healthy</p>
+                                <p className={`text-2xl font-bold mt-2 ${isHealthy ? "text-green-500" : "text-red-500"}`}>
+                                    {health?.status ? health.status.charAt(0).toUpperCase() + health.status.slice(1) : "Unknown"}
+                                </p>
                             </div>
-                            <Activity className="w-8 h-8 text-green-500" />
+                            <Activity className={`w-8 h-8 ${isHealthy ? "text-green-500" : "text-red-500"}`} />
                         </div>
                     </CardContent>
                 </Card>
@@ -58,9 +84,11 @@ function AdminMetricsPageContent() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Database</p>
-                                <p className="text-2xl font-bold text-green-500 mt-2">Connected</p>
+                                <p className={`text-2xl font-bold mt-2 ${dbConnected ? "text-green-500" : "text-red-500"}`}>
+                                    {dbConnected ? "Connected" : "Disconnected"}
+                                </p>
                             </div>
-                            <Database className="w-8 h-8 text-green-500" />
+                            <Database className={`w-8 h-8 ${dbConnected ? "text-green-500" : "text-red-500"}`} />
                         </div>
                     </CardContent>
                 </Card>
@@ -71,7 +99,7 @@ function AdminMetricsPageContent() {
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Uptime</p>
                                 <p className="text-2xl font-bold text-primary mt-2">
-                                    {metrics?.uptime || "99.9%"}
+                                    {formatUptime(metrics?.uptimeSeconds || 0)}
                                 </p>
                             </div>
                             <Clock className="w-8 h-8 text-primary" />
@@ -83,9 +111,9 @@ function AdminMetricsPageContent() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Response Time</p>
+                                <p className="text-sm font-medium text-muted-foreground">DB Response Time</p>
                                 <p className="text-2xl font-bold text-primary mt-2">
-                                    {metrics?.responseTime || "45ms"}
+                                    {metrics?.database.responseTimeMs ?? 0}ms
                                 </p>
                             </div>
                             <Server className="w-8 h-8 text-primary" />
@@ -103,19 +131,21 @@ function AdminMetricsPageContent() {
                         <div className="space-y-3">
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Node Version</span>
-                                <span className="font-medium">v18.17.0</span>
+                                <span className="font-medium">{metrics?.nodeVersion || "—"}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Environment</span>
-                                <span className="font-medium">Production</span>
+                                <span className="font-medium capitalize">{metrics?.environment || "—"}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">API Version</span>
-                                <span className="font-medium">v1.0.0</span>
+                                <span className="font-medium">{metrics?.apiVersion || "—"}</span>
                             </div>
                             <div className="flex justify-between py-2">
-                                <span className="text-muted-foreground">Last Deployment</span>
-                                <span className="font-medium">2 hours ago</span>
+                                <span className="text-muted-foreground">Memory Usage</span>
+                                <span className="font-medium">
+                                    {metrics ? `${formatBytes(metrics.memory.usedBytes)} / ${formatBytes(metrics.memory.totalBytes)}` : "—"}
+                                </span>
                             </div>
                         </div>
                     </CardContent>
@@ -129,19 +159,19 @@ function AdminMetricsPageContent() {
                         <div className="space-y-3">
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Total Collections</span>
-                                <span className="font-medium">9</span>
+                                <span className="font-medium">{metrics?.database.collections ?? "—"}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Total Documents</span>
-                                <span className="font-medium">{metrics?.totalDocuments || "1,234"}</span>
+                                <span className="font-medium">{metrics?.database.documents?.toLocaleString() ?? "—"}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Database Size</span>
-                                <span className="font-medium">24.5 MB</span>
+                                <span className="font-medium">{metrics ? formatBytes(metrics.database.dataSizeBytes) : "—"}</span>
                             </div>
                             <div className="flex justify-between py-2">
-                                <span className="text-muted-foreground">Last Backup</span>
-                                <span className="font-medium">1 day ago</span>
+                                <span className="text-muted-foreground">Low Stock Items</span>
+                                <span className="font-medium">{metrics?.lowStockItems ?? "—"}</span>
                             </div>
                         </div>
                     </CardContent>

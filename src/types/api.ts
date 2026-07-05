@@ -62,6 +62,30 @@ export interface AuthResponse {
 }
 
 // ============================================================================
+// Category Types
+// ============================================================================
+
+export interface Category {
+    _id: string;
+    name: string;
+    description?: string;
+    isActive: boolean;
+    createdBy: string;
+    updatedBy: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateCategoryDTO {
+    name: string;
+    description?: string;
+}
+
+export interface UpdateCategoryDTO extends Partial<CreateCategoryDTO> {
+    isActive?: boolean;
+}
+
+// ============================================================================
 // Product Types
 // ============================================================================
 
@@ -479,15 +503,20 @@ export interface SystemMetrics {
     lowStockItems: number;
     activeAlerts: number;
     systemLoad: number;
-    performance: {
-        responseTime: number;
-        errorRate: number;
-        uptime: number;
+    uptimeSeconds: number;
+    nodeVersion: string;
+    environment: string;
+    apiVersion: string;
+    memory: {
+        usedBytes: number;
+        totalBytes: number;
     };
-    storage: {
-        total: number;
-        used: number;
-        free: number;
+    database: {
+        status: "connected" | "disconnected";
+        responseTimeMs: number;
+        collections: number;
+        documents: number;
+        dataSizeBytes: number;
     };
 }
 
