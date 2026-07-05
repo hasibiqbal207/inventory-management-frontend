@@ -18,6 +18,7 @@ import {
     Settings,
     LogOut,
     Tag,
+    History,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -53,6 +54,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Warehouses", href: "/dashboard/warehouses", icon: Warehouse, roles: ["admin", "inventory_manager", "warehouse_supervisor", "auditor", "executive"] },
         { name: "Alerts", href: "/dashboard/alerts", icon: Bell, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"] },
         { name: "Reports", href: "/dashboard/reports", icon: BarChart3, roles: ["admin", "inventory_manager", "warehouse_supervisor", "procurement_officer", "sales_rep", "finance_officer", "auditor", "executive"] },
+        { name: "Audit Log", href: "/dashboard/audit-log", icon: History, roles: ["admin", "auditor", "it_support"] },
     ];
 
     const adminNavigation = [

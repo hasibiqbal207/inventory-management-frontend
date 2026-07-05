@@ -531,3 +531,26 @@ export interface Setting {
     isSystem: boolean;
     updatedAt: string;
 }
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+export type AuditAction = "create" | "update" | "delete";
+
+export interface AuditLog {
+    _id: string;
+    entityType: string;
+    entityId: string;
+    action: AuditAction;
+    changes?: Record<string, any>;
+    performedBy?: { _id: string; firstName: string; lastName: string; email: string } | string;
+    createdAt: string;
+}
+
+export interface AuditLogPage {
+    logs: AuditLog[];
+    total: number;
+    page: number;
+    totalPages: number;
+}
