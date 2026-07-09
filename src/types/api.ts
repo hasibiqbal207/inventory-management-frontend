@@ -148,6 +148,12 @@ export interface AddStockDTO {
     supplier?: string;
     origin?: string;
     productMaterial?: string;
+    // Batch/lot tracking (opt-in). When useBatch is set, the receipt is recorded
+    // as a lot in the Batch ledger and removals allocate FEFO.
+    useBatch?: boolean;
+    lotNumber?: string;
+    manufactureDate?: string;
+    unitCost?: number;
 }
 
 export interface RemoveStockDTO {
@@ -157,6 +163,44 @@ export interface RemoveStockDTO {
     reason: string;
     reference: string;
     isDamage?: boolean;
+    // When set, the removal drains the earliest-expiring lots first (FEFO).
+    useBatch?: boolean;
+}
+
+// ============================================================================
+// Batch / Lot Tracking Types
+// ============================================================================
+
+export type BatchStatus = "active" | "depleted" | "expired";
+
+export interface Batch {
+    _id: string;
+    productId: string | Product;
+    warehouseId: string | Warehouse;
+    lotNumber: string;
+    expiryDate?: string;
+    manufactureDate?: string;
+    quantityReceived: number;
+    quantityRemaining: number;
+    unitCost?: number;
+    supplier?: string;
+    origin?: string;
+    status: BatchStatus;
+    reference?: string;
+    receivedDate: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface FEFOAllocationPreview {
+    allocation: Array<{
+        batchId: string;
+        lotNumber: string;
+        expiryDate?: string;
+        quantity: number;
+    }>;
+    fullyAllocatable: boolean;
+    shortfall: number;
 }
 
 // ============================================================================

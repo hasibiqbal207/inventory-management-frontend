@@ -33,6 +33,8 @@ export function AddStockForm({
         supplier: "",
         origin: "",
         productMaterial: "",
+        useBatch: false,
+        lotNumber: "",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -40,7 +42,13 @@ export function AddStockForm({
         if (formData.quantity <= 0 || !formData.warehouseId || !formData.reason || !formData.reference) {
             return;
         }
-        onSubmit(formData);
+        // Only forward a lot number when batch tracking is on; a blank one lets
+        // the backend auto-generate.
+        const payload: AddStockDTO = {
+            ...formData,
+            lotNumber: formData.useBatch ? formData.lotNumber?.trim() || undefined : undefined,
+        };
+        onSubmit(payload);
     };
 
     return (
@@ -192,6 +200,38 @@ export function AddStockForm({
                         />
                     </div>
                 </div>
+            </div>
+
+            <div className="border-t pt-4 mt-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                    <input
+                        type="checkbox"
+                        checked={formData.useBatch}
+                        onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, useBatch: e.target.checked }))
+                        }
+                        className="rounded border-gray-300"
+                    />
+                    Track this receipt as a batch / lot (enables FEFO allocation)
+                </label>
+                {formData.useBatch && (
+                    <div className="mt-3 space-y-2">
+                        <Label htmlFor="lotNumber">Lot Number</Label>
+                        <Input
+                            id="lotNumber"
+                            name="lotNumber"
+                            value={formData.lotNumber}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, lotNumber: e.target.value }))
+                            }
+                            placeholder="Leave blank to auto-generate"
+                        />
+                        <p className="text-xs text-gray-500">
+                            The expiry date above is recorded on this lot and drives
+                            first-expired-first-out picking.
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white py-2 border-t">
