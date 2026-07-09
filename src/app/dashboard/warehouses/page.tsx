@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { WarehouseForm } from "@/components/warehouses/warehouse-form";
 import { Warehouse, MapPin, Phone, Mail, Plus, Edit, Trash2 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import type { Warehouse as WarehouseType, CreateWarehouseDTO } from "@/types/api";
 
@@ -30,7 +30,7 @@ export default function WarehousesPage() {
 }
 
 function WarehousesPageContent() {
-    const { user } = useAuth();
+    const { canManageWarehouses } = usePermissions();
     const queryClient = useQueryClient();
 
     const { data: warehouses, isLoading } = useQuery({
@@ -76,8 +76,6 @@ function WarehousesPageContent() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseType | null>(null);
-
-    const canManageWarehouses = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor";
 
     const handleCreate = async (data: CreateWarehouseDTO) => {
         await createWarehouse.mutateAsync(data);

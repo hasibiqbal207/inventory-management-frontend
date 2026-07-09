@@ -19,7 +19,7 @@ import { ArrowLeft, Edit, Trash2, Package } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useState } from "react";
 import type { CreateProductDTO } from "@/types/api";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export default function ProductDetailPage({
     params,
@@ -28,15 +28,13 @@ export default function ProductDetailPage({
 }) {
     const resolvedParams = use(params);
     const router = useRouter();
-    const { user } = useAuth();
+    const { isAdmin } = usePermissions();
     const { data: product, isLoading, error } = useProduct(resolvedParams.id);
     const updateProduct = useUpdateProduct();
     const deleteProduct = useDeleteProduct();
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-    const isAdmin = user?.role === "admin";
 
     const handleUpdate = async (data: CreateProductDTO) => {
         await updateProduct.mutateAsync({ id: resolvedParams.id, data });

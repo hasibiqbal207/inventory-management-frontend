@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { Users, Mail, Phone, MapPin, Star, Plus, Edit, Trash2 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import type { Supplier, CreateSupplierDTO } from "@/types/api";
 
@@ -30,7 +30,7 @@ export default function SuppliersPage() {
 }
 
 function SuppliersPageContent() {
-    const { user } = useAuth();
+    const { canManageSuppliers } = usePermissions();
     const queryClient = useQueryClient();
 
     const { data: suppliers, isLoading } = useQuery({
@@ -76,8 +76,6 @@ function SuppliersPageContent() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-
-    const canManageSuppliers = user?.role === "admin" || user?.role === "procurement_officer";
 
     const handleCreate = async (data: CreateSupplierDTO) => {
         await createSupplier.mutateAsync(data);

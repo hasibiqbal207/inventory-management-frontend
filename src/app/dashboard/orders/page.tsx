@@ -16,7 +16,7 @@ import {
 import { Plus, ShoppingCart, Eye, Trash2, Package, Coins } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Order, OrderStatus, OrderType, Currency } from "@/types/api";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -30,7 +30,7 @@ export default function OrdersPage() {
 
 function OrdersPageContent() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { canCreateOrders, canUpdateOrderStatus, canDeleteOrders } = usePermissions();
     const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
     const [typeFilter, setTypeFilter] = useState<OrderType | "all">("all");
 
@@ -45,11 +45,6 @@ function OrdersPageContent() {
 
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-    const isAdmin = user?.role === "admin";
-    const canCreateOrders = user?.role === "admin" || user?.role === "sales_rep" || user?.role === "procurement_officer";
-    const canUpdateStatus = user?.role === "admin" || user?.role === "warehouse_staff" || user?.role === "warehouse_supervisor" || user?.role === "sales_rep" || user?.role === "procurement_officer";
-    const canDeleteOrders = user?.role === "admin";
 
     const getStatusBadge = (status: OrderStatus) => {
         const variants: Record<OrderStatus, "default" | "warning" | "success" | "danger"> = {
@@ -276,7 +271,7 @@ function OrdersPageContent() {
                                             Details
                                         </Button>
 
-                                        {canUpdateStatus && order.status !== "completed" && order.status !== "cancelled" && (
+                                        {canUpdateOrderStatus && order.status !== "completed" && order.status !== "cancelled" && (
                                             <Button
                                                 size="sm"
                                                 className={order.orderType === "purchase" ? "bg-green-600 hover:bg-green-700 w-full justify-start" : "bg-blue-600 hover:bg-blue-700 w-full justify-start"}

@@ -28,7 +28,7 @@ import { RemoveStockForm } from "@/components/inventory/remove-stock-form";
 import { TransferStockForm } from "@/components/inventory/transfer-stock-form";
 import { Plus, Minus, Search, Warehouse, TrendingUp, TrendingDown, Package, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { AddStockDTO, RemoveStockDTO, Inventory, Product } from "@/types/api";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -62,11 +62,7 @@ function InventoryPageContent() {
     const [isRemoveStockDialogOpen, setIsRemoveStockDialogOpen] = useState(false);
     const [isTransferStockDialogOpen, setIsTransferStockDialogOpen] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
-    const { user } = useAuth();
-
-    const isStaff = user?.role === "warehouse_staff";
-    const canManageStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
-    const canTransferStock = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "warehouse_staff";
+    const { isWarehouseStaff: isStaff, canManageStock, canTransferStock } = usePermissions();
 
     const inventory = inventoryData?.inventory || [];
     const totalPages = inventoryData?.totalPages || 1;

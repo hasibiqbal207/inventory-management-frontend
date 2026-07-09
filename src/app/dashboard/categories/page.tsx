@@ -16,7 +16,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Tag, Plus, Edit, Trash2 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import type { Category, CreateCategoryDTO, UpdateCategoryDTO } from "@/types/api";
 
@@ -31,9 +31,8 @@ export default function CategoriesPage() {
 }
 
 function CategoriesPageContent() {
-    const { user } = useAuth();
+    const { canManageCategories: canManage } = usePermissions();
     const queryClient = useQueryClient();
-    const canManage = user?.role === "admin" || user?.role === "inventory_manager";
 
     const { data: categories, isLoading } = useQuery({
         queryKey: ["categories"],

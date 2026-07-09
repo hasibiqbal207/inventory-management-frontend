@@ -17,7 +17,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Check, X, Eye, Clock, AlertCircle, CheckCircle2, XCircle, Calendar, Truck, Globe, Box } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { InventoryRequest, RequestStatus } from "@/types/api";
 
@@ -30,7 +30,7 @@ export default function InventoryRequestsPage() {
 }
 
 function InventoryRequestsContent() {
-    const { user } = useAuth();
+    const { canApproveInventoryRequests } = usePermissions();
     const { data: requests, isLoading } = useInventoryRequests();
     const approveMutation = useApproveInventoryRequest();
     const rejectMutation = useRejectInventoryRequest();
@@ -40,7 +40,7 @@ function InventoryRequestsContent() {
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
 
-    const canApprove = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor";
+    const canApprove = canApproveInventoryRequests;
 
     const getStatusBadge = (status: RequestStatus) => {
         switch (status) {

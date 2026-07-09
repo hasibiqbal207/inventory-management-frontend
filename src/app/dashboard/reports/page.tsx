@@ -20,7 +20,7 @@ import { BarChart3, TrendingUp, TrendingDown, Package, DollarSign, Download } fr
 import { formatCurrency } from "@/lib/utils";
 import { exportRowsToCsv } from "@/lib/export";
 
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -50,12 +50,12 @@ export default function ReportsPage() {
 }
 
 function ReportsPageContent() {
-    const { user } = useAuth();
+    const { canViewInventoryReport, canViewSalesReport, canViewSupplierReport } = usePermissions();
     const [reportType, setReportType] = useState<"inventory" | "sales" | "suppliers" | "damage">("inventory");
 
-    const canSeeInventory = user?.role === "admin" || user?.role === "inventory_manager" || user?.role === "warehouse_supervisor" || user?.role === "auditor" || user?.role === "executive";
-    const canSeeSales = user?.role === "admin" || user?.role === "sales_rep" || user?.role === "finance_officer" || user?.role === "executive";
-    const canSeeSuppliers = user?.role === "admin" || user?.role === "procurement_officer" || user?.role === "finance_officer" || user?.role === "executive";
+    const canSeeInventory = canViewInventoryReport;
+    const canSeeSales = canViewSalesReport;
+    const canSeeSuppliers = canViewSupplierReport;
 
     const { data: inventoryReport, isLoading: inventoryLoading } = useQuery({
         queryKey: ["reports", "inventory"],

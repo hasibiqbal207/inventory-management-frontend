@@ -18,7 +18,7 @@ import { ProductForm } from "@/components/products/product-form";
 import { Plus, Search, Edit, Trash2, Package } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Product, CreateProductDTO } from "@/types/api";
-import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -31,7 +31,7 @@ export default function ProductsPage() {
 }
 
 function ProductsPageContent() {
-    const { user } = useAuth();
+    const { canManageProducts } = usePermissions();
     const { data: products, isLoading, error } = useProducts();
     const createProduct = useCreateProduct();
     const updateProduct = useUpdateProduct();
@@ -42,8 +42,6 @@ function ProductsPageContent() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-    const canManageProducts = user?.role === "admin" || user?.role === "inventory_manager";
 
     // Filter products based on search
     const filteredProducts = products?.filter((product) =>
