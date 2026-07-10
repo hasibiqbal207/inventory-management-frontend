@@ -89,6 +89,13 @@ export interface UpdateCategoryDTO extends Partial<CreateCategoryDTO> {
 // Product Types
 // ============================================================================
 
+export type ProductType = "standard" | "kit" | "bundle";
+
+export interface BOMComponent {
+    componentProductId: string;
+    quantity: number;
+}
+
 export interface Product {
     _id: string;
     productName: string;
@@ -99,6 +106,8 @@ export interface Product {
     maxStockLevel: number;
     sku: string;
     isActive: boolean;
+    productType?: ProductType;
+    components?: BOMComponent[];
     createdBy: string;
     updatedBy: string;
     createdAt: string;
@@ -113,9 +122,28 @@ export interface CreateProductDTO {
     price?: number;
     minStockLevel?: number;
     maxStockLevel?: number;
+    productType?: ProductType;
+    components?: BOMComponent[];
 }
 
 export interface UpdateProductDTO extends Partial<CreateProductDTO> { }
+
+// Assembly / BOM buildability
+export interface ComponentAvailability {
+    componentProductId: string;
+    productName?: string;
+    sku?: string;
+    required: number;
+    available: number;
+    buildableFromThis: number;
+}
+
+export interface Buildability {
+    kitProductId: string;
+    warehouseId: string;
+    buildableQuantity: number;
+    components: ComponentAvailability[];
+}
 
 // Bulk import result (per-row summary) returned by POST /products/import.
 export interface ImportRowError {
