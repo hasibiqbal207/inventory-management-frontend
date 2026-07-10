@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
+import { useProductsPaginated, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -36,12 +38,29 @@ export default function ProductsPage() {
 
 function ProductsPageContent() {
     const { canManageProducts } = usePermissions();
-    const { data: products, isLoading, error } = useProducts();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(searchTerm);
+
+    // Reset to page 1 whenever the (debounced) search changes so results aren't
+    // requested for a page that no longer exists in the filtered set.
+    const searchKey = debouncedSearch;
+    const [lastSearch, setLastSearch] = useState(searchKey);
+    if (searchKey !== lastSearch) {
+        setLastSearch(searchKey);
+        setPage(1);
+    }
+
+    const { data: productsPage, isLoading, error } = useProductsPaginated({
+        page,
+        limit: 20,
+        search: debouncedSearch || undefined,
+    });
+    const products = productsPage?.data;
+    const pagination = productsPage?.pagination;
     const createProduct = useCreateProduct();
     const updateProduct = useUpdateProduct();
     const deleteProduct = useDeleteProduct();
-
-    const [searchTerm, setSearchTerm] = useState("");
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -69,12 +88,9 @@ function ProductsPageContent() {
         }
     };
 
-    // Filter products based on search
-    const filteredProducts = products?.filter((product) =>
-        product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Search is handled server-side (see useProductsPaginated); the returned
+    // page is already filtered.
+    const filteredProducts = products;
 
     const handleCreate = async (data: CreateProductDTO) => {
         await createProduct.mutateAsync(data);
@@ -264,6 +280,8 @@ function ProductsPageContent() {
                     )}
                 </div>
             )}
+
+            <Pagination pagination={pagination} onPageChange={setPage} />
 
             {/* Create Product Dialog */}
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

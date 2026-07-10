@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { suppliersService } from "@/services/suppliers.service";
+import { useSuppliersPaginated } from "@/hooks/use-suppliers";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,7 +18,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { SupplierForm } from "@/components/suppliers/supplier-form";
-import { Users, Mail, Phone, MapPin, Star, Plus, Edit, Trash2 } from "lucide-react";
+import { Users, Mail, Phone, MapPin, Star, Plus, Edit, Trash2, Search } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import type { Supplier, CreateSupplierDTO } from "@/types/api";
@@ -33,10 +37,24 @@ function SuppliersPageContent() {
     const { canManageSuppliers } = usePermissions();
     const queryClient = useQueryClient();
 
-    const { data: suppliers, isLoading } = useQuery({
-        queryKey: ["suppliers"],
-        queryFn: () => suppliersService.getAll(),
+    const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(searchTerm);
+
+    // Snap back to page 1 when the search term changes.
+    const [lastSearch, setLastSearch] = useState(debouncedSearch);
+    if (debouncedSearch !== lastSearch) {
+        setLastSearch(debouncedSearch);
+        setPage(1);
+    }
+
+    const { data: suppliersPage, isLoading } = useSuppliersPaginated({
+        page,
+        limit: 20,
+        search: debouncedSearch || undefined,
     });
+    const suppliers = suppliersPage?.data;
+    const pagination = suppliersPage?.pagination;
 
     const createSupplier = useMutation({
         mutationFn: (data: CreateSupplierDTO) => suppliersService.create(data),
@@ -131,6 +149,16 @@ function SuppliersPageContent() {
                 )}
             </div>
 
+            <div className="mb-6 relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                    placeholder="Search by company, contact, or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                />
+            </div>
+
             {suppliers && suppliers.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {suppliers.map((supplier) => (
@@ -220,9 +248,15 @@ function SuppliersPageContent() {
             ) : (
                 <div className="text-center py-12">
                     <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No suppliers yet</h3>
-                    <p className="text-gray-600 mb-4">Add suppliers to manage your supply chain</p>
-                    {canManageSuppliers && (
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {debouncedSearch ? "No suppliers found" : "No suppliers yet"}
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                        {debouncedSearch
+                            ? "Try adjusting your search terms"
+                            : "Add suppliers to manage your supply chain"}
+                    </p>
+                    {canManageSuppliers && !debouncedSearch && (
                         <Button onClick={() => setIsCreateDialogOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Add Supplier
@@ -230,6 +264,8 @@ function SuppliersPageContent() {
                     )}
                 </div>
             )}
+
+            <Pagination pagination={pagination} onPageChange={setPage} />
 
             {/* Create Dialog */}
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

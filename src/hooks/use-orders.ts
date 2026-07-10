@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { ordersService } from "@/services/orders.service";
-import type { CreateOrderDTO, OrderStatus } from "@/types/api";
+import type { CreateOrderDTO, OrderStatus, ListParams } from "@/types/api";
 import { toast } from "sonner";
 
 /**
@@ -10,6 +10,17 @@ export function useOrders(filters?: { status?: OrderStatus; orderType?: "purchas
     return useQuery({
         queryKey: ["orders", filters],
         queryFn: () => ordersService.getAll(filters),
+    });
+}
+
+/** Paginated orders with filters + search — for the orders list page. */
+export function useOrdersPaginated(
+    params: ListParams & { status?: OrderStatus; orderType?: "purchase" | "sales" }
+) {
+    return useQuery({
+        queryKey: ["orders", "paginated", params],
+        queryFn: () => ordersService.getPaginated(params),
+        placeholderData: keepPreviousData,
     });
 }
 

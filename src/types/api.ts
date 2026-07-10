@@ -243,6 +243,28 @@ export interface CreateReturnDTO {
 // Batch / Lot Tracking Types
 // ============================================================================
 
+// ============================================================================
+// Pagination
+// ============================================================================
+
+export interface PaginationMeta {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    pagination: PaginationMeta;
+}
+
+export interface ListParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+}
+
 export type BatchStatus = "active" | "depleted" | "expired";
 
 export interface Batch {

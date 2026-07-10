@@ -4,7 +4,16 @@ import type {
     CreateOrderDTO,
     APIResponse,
     OrderStatus,
+    ListParams,
+    PaginatedResponse,
 } from "@/types/api";
+
+const ALL_ITEMS_LIMIT = 1000;
+
+interface OrderListFilters {
+    status?: OrderStatus;
+    orderType?: "purchase" | "sales";
+}
 
 /**
  * Orders Service
@@ -12,15 +21,31 @@ import type {
  */
 export const ordersService = {
     /**
-     * Get all orders with optional filters
+     * Get all orders with optional filters (unpaginated).
      */
-    async getAll(filters?: { status?: OrderStatus; orderType?: "purchase" | "sales" }): Promise<Order[]> {
+    async getAll(filters?: OrderListFilters): Promise<Order[]> {
         const params = new URLSearchParams();
+        params.append("limit", String(ALL_ITEMS_LIMIT));
         if (filters?.status) params.append("status", filters.status);
         if (filters?.orderType) params.append("orderType", filters.orderType);
 
         const response: any = await apiClient.get(`/orders?${params.toString()}`);
         return response.data.orders;
+    },
+
+    /**
+     * Get a page of orders with filters + search — for the orders list page.
+     */
+    async getPaginated(params: ListParams & OrderListFilters = {}): Promise<PaginatedResponse<Order>> {
+        const qs = new URLSearchParams();
+        qs.append("page", String(params.page ?? 1));
+        qs.append("limit", String(params.limit ?? 20));
+        if (params.search) qs.append("search", params.search);
+        if (params.status) qs.append("status", params.status);
+        if (params.orderType) qs.append("orderType", params.orderType);
+
+        const response: any = await apiClient.get(`/orders?${qs.toString()}`);
+        return { data: response.data.orders, pagination: response.data.pagination };
     },
 
     /**

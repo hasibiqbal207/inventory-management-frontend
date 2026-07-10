@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { alertsService } from "@/services/alerts.service";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Check } from "lucide-react";
+import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Check, Search } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -23,11 +26,30 @@ export default function AlertsPage() {
 function AlertsPageContent() {
     const queryClient = useQueryClient();
     const [filter, setFilter] = useState<"all" | "unread">("all");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(searchTerm);
 
-    const { data: alerts, isLoading } = useQuery({
-        queryKey: ["alerts", filter],
-        queryFn: () => alertsService.getAll(filter === "unread" ? { status: "active" } : undefined),
+    const filterKey = `${filter}|${debouncedSearch}`;
+    const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+    if (filterKey !== lastFilterKey) {
+        setLastFilterKey(filterKey);
+        setPage(1);
+    }
+
+    const { data: alertsPage, isLoading } = useQuery({
+        queryKey: ["alerts", "paginated", filter, debouncedSearch, page],
+        queryFn: () =>
+            alertsService.getPaginated({
+                page,
+                limit: 20,
+                search: debouncedSearch || undefined,
+                ...(filter === "unread" ? { status: "active" } : {}),
+            }),
+        placeholderData: keepPreviousData,
     });
+    const alerts = alertsPage?.data;
+    const pagination = alertsPage?.pagination;
 
     const acknowledgeAlert = useMutation({
         mutationFn: (id: string) => alertsService.acknowledge(id),
@@ -70,7 +92,13 @@ function AlertsPageContent() {
         return variants[severity] || "default";
     };
 
-    const unreadCount = alerts?.filter((a) => a.status === "active").length || 0;
+    // Total unread across all alerts (not just the visible page): a cheap count
+    // query that reads pagination.total for status=active.
+    const { data: unreadPage } = useQuery({
+        queryKey: ["alerts", "unread-count"],
+        queryFn: () => alertsService.getPaginated({ status: "active", limit: 1 }),
+    });
+    const unreadCount = unreadPage?.pagination.total ?? 0;
 
     if (isLoading) {
         return (
@@ -93,8 +121,8 @@ function AlertsPageContent() {
                 </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
+            {/* Filter Tabs + Search */}
+            <div className="flex flex-wrap items-center gap-2 mb-6">
                 <Button
                     variant={filter === "all" ? "default" : "outline"}
                     onClick={() => setFilter("all")}
@@ -107,6 +135,15 @@ function AlertsPageContent() {
                 >
                     Unread ({unreadCount})
                 </Button>
+                <div className="relative flex-1 min-w-[220px] max-w-md ml-auto">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                        placeholder="Search alerts..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
             </div>
 
             {/* Alerts List */}
@@ -193,6 +230,8 @@ function AlertsPageContent() {
                     </p>
                 </div>
             )}
+
+            <Pagination pagination={pagination} onPageChange={setPage} />
         </div>
     );
 }

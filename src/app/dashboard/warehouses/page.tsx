@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { warehousesService } from "@/services/warehouses.service";
+import { useWarehousesPaginated } from "@/hooks/use-warehouses";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,7 +18,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { WarehouseForm } from "@/components/warehouses/warehouse-form";
-import { Warehouse, MapPin, Phone, Mail, Plus, Edit, Trash2 } from "lucide-react";
+import { Warehouse, MapPin, Phone, Mail, Plus, Edit, Trash2, Search } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import type { Warehouse as WarehouseType, CreateWarehouseDTO } from "@/types/api";
@@ -33,10 +37,23 @@ function WarehousesPageContent() {
     const { canManageWarehouses } = usePermissions();
     const queryClient = useQueryClient();
 
-    const { data: warehouses, isLoading } = useQuery({
-        queryKey: ["warehouses"],
-        queryFn: () => warehousesService.getAll(),
+    const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(searchTerm);
+
+    const [lastSearch, setLastSearch] = useState(debouncedSearch);
+    if (debouncedSearch !== lastSearch) {
+        setLastSearch(debouncedSearch);
+        setPage(1);
+    }
+
+    const { data: warehousesPage, isLoading } = useWarehousesPaginated({
+        page,
+        limit: 20,
+        search: debouncedSearch || undefined,
     });
+    const warehouses = warehousesPage?.data;
+    const pagination = warehousesPage?.pagination;
 
     const createWarehouse = useMutation({
         mutationFn: (data: CreateWarehouseDTO) => warehousesService.create(data),
@@ -131,6 +148,16 @@ function WarehousesPageContent() {
                 )}
             </div>
 
+            <div className="mb-6 relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                    placeholder="Search by name, code, or city..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                />
+            </div>
+
             {warehouses && warehouses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {warehouses.map((warehouse) => (
@@ -210,9 +237,15 @@ function WarehousesPageContent() {
             ) : (
                 <div className="text-center py-12">
                     <Warehouse className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No warehouses yet</h3>
-                    <p className="text-gray-600 mb-4">Add warehouses to track inventory locations</p>
-                    {canManageWarehouses && (
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {debouncedSearch ? "No warehouses found" : "No warehouses yet"}
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                        {debouncedSearch
+                            ? "Try adjusting your search terms"
+                            : "Add warehouses to track inventory locations"}
+                    </p>
+                    {canManageWarehouses && !debouncedSearch && (
                         <Button onClick={() => setIsCreateDialogOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Add Warehouse
@@ -220,6 +253,8 @@ function WarehousesPageContent() {
                     )}
                 </div>
             )}
+
+            <Pagination pagination={pagination} onPageChange={setPage} />
 
             {/* Create Dialog */}
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

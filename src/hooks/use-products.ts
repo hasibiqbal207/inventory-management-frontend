@@ -1,15 +1,27 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { productsService } from "@/services/products.service";
-import type { CreateProductDTO, UpdateProductDTO } from "@/types/api";
+import type { CreateProductDTO, UpdateProductDTO, ListParams } from "@/types/api";
 import { toast } from "sonner";
 
 /**
- * Get all products
+ * Get all products (unpaginated) — for dropdowns and bulk consumers.
  */
 export function useProducts() {
     return useQuery({
         queryKey: ["products"],
         queryFn: () => productsService.getAll(),
+    });
+}
+
+/**
+ * Get a page of products with search — for the products list page. Keeps the
+ * previous page's data visible while the next page loads to avoid a flash.
+ */
+export function useProductsPaginated(params: ListParams) {
+    return useQuery({
+        queryKey: ["products", "paginated", params],
+        queryFn: () => productsService.getPaginated(params),
+        placeholderData: keepPreviousData,
     });
 }
 

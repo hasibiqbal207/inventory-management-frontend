@@ -5,7 +5,13 @@ import type {
     UpdateProductDTO,
     APIResponse,
     ImportResult,
+    ListParams,
+    PaginatedResponse,
 } from "@/types/api";
+
+// Dropdowns and other "give me everything" consumers request a high limit so a
+// default page size never silently truncates a select list.
+const ALL_ITEMS_LIMIT = 1000;
 
 /**
  * Products Service
@@ -13,11 +19,24 @@ import type {
  */
 export const productsService = {
     /**
-     * Get all products
+     * Get all products (unpaginated view for dropdowns / bulk consumers).
      */
     async getAll(): Promise<Product[]> {
-        const response: any = await apiClient.get("/products");
+        const response: any = await apiClient.get(`/products?limit=${ALL_ITEMS_LIMIT}`);
         return response.data.products;
+    },
+
+    /**
+     * Get a page of products with optional search — for the list page.
+     */
+    async getPaginated(params: ListParams = {}): Promise<PaginatedResponse<Product>> {
+        const qs = new URLSearchParams();
+        qs.append("page", String(params.page ?? 1));
+        qs.append("limit", String(params.limit ?? 20));
+        if (params.search) qs.append("search", params.search);
+
+        const response: any = await apiClient.get(`/products?${qs.toString()}`);
+        return { data: response.data.products, pagination: response.data.pagination };
     },
 
     /**

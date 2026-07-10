@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useOrders, useUpdateOrderStatus, useDeleteOrder } from "@/hooks/use-orders";
+import { useOrders, useOrdersPaginated, useUpdateOrderStatus, useDeleteOrder } from "@/hooks/use-orders";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -33,13 +36,37 @@ function OrdersPageContent() {
     const { canCreateOrders, canUpdateOrderStatus, canDeleteOrders } = usePermissions();
     const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
     const [typeFilter, setTypeFilter] = useState<OrderType | "all">("all");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(searchTerm);
 
     const filters = {
         ...(statusFilter !== "all" && { status: statusFilter }),
         ...(typeFilter !== "all" && { orderType: typeFilter }),
     };
 
-    const { data: orders, isLoading, error } = useOrders(filters);
+    // Reset to the first page whenever any filter or the search term changes.
+    const filterKey = `${statusFilter}|${typeFilter}|${debouncedSearch}`;
+    const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+    if (filterKey !== lastFilterKey) {
+        setLastFilterKey(filterKey);
+        setPage(1);
+    }
+
+    // Paginated list for display...
+    const { data: ordersPage, isLoading, error } = useOrdersPaginated({
+        ...filters,
+        page,
+        limit: 20,
+        search: debouncedSearch || undefined,
+    });
+    const orders = ordersPage?.data;
+    const pagination = ordersPage?.pagination;
+
+    // ...and an unpaginated fetch (same filters, no search) purely to compute the
+    // aggregate stat cards over the whole filtered set rather than one page.
+    const { data: allOrders } = useOrders(filters);
+
     const updateStatus = useUpdateOrderStatus();
     const deleteOrder = useDeleteOrder();
 
@@ -77,16 +104,17 @@ function OrdersPageContent() {
         }
     };
 
-    // Calculate statistics
+    // Statistics are aggregated over the whole filtered set (allOrders), not the
+    // currently visible page.
     const stats = {
-        total: orders?.length || 0,
-        pending: orders?.filter((o) => o.status === "pending").length || 0,
-        completed: orders?.filter((o) => o.status === "completed").length || 0,
+        total: allOrders?.length || 0,
+        pending: allOrders?.filter((o) => o.status === "pending").length || 0,
+        completed: allOrders?.filter((o) => o.status === "completed").length || 0,
         currencyTotals: {
-            USD: orders?.filter(o => o.currency === "USD").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
-            EUR: orders?.filter(o => o.currency === "EUR").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
-            GBP: orders?.filter(o => o.currency === "GBP").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
-            BDT: orders?.filter(o => o.currency === "BDT").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
+            USD: allOrders?.filter(o => o.currency === "USD").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
+            EUR: allOrders?.filter(o => o.currency === "EUR").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
+            GBP: allOrders?.filter(o => o.currency === "GBP").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
+            BDT: allOrders?.filter(o => o.currency === "BDT").reduce((sum, o) => sum + o.totalAmount, 0) || 0,
         }
     };
 
@@ -204,6 +232,15 @@ function OrdersPageContent() {
                         <option value="purchase">Purchase</option>
                     </select>
                 </div>
+
+                <div className="flex-1 max-w-xs">
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Search</label>
+                    <Input
+                        placeholder="Order number..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </div>
 
             {/* Orders List */}
@@ -319,6 +356,8 @@ function OrdersPageContent() {
                     )}
                 </div>
             )}
+
+            <Pagination pagination={pagination} onPageChange={setPage} />
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
