@@ -29,6 +29,7 @@ export function ProductForm({
         description: "",
         category: "",
         sku: "",
+        barcode: "",
         price: 0,
         minStockLevel: 10,
         maxStockLevel: 1000,
@@ -49,6 +50,7 @@ export function ProductForm({
                 description: product.description,
                 category: product.category,
                 sku: product.sku,
+                barcode: product.barcode ?? "",
                 price: product.price,
                 minStockLevel: product.minStockLevel,
                 maxStockLevel: product.maxStockLevel,
@@ -125,6 +127,17 @@ export function ProductForm({
                         placeholder="e.g., PROD-001"
                     />
                 </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="barcode">Barcode / QR value</Label>
+                <Input
+                    id="barcode"
+                    name="barcode"
+                    value={formData.barcode}
+                    onChange={handleChange}
+                    placeholder="Scannable code (optional; falls back to SKU)"
+                />
             </div>
 
             <div className="space-y-2">

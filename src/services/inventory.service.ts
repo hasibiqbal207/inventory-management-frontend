@@ -71,4 +71,18 @@ export const inventoryService = {
         const response: any = await apiClient.post("/inventory/transfer", data);
         return response.data;
     },
+
+    /**
+     * Scan-first lookup: resolve a product by barcode/SKU and its on-hand at a
+     * warehouse. Used by the mobile warehouse flow.
+     */
+    async scan(code: string, warehouseId?: string): Promise<{
+        product: { _id: string; productName: string; sku: string; barcode?: string; category: string };
+        quantity: number | null;
+    }> {
+        const qs = new URLSearchParams({ code });
+        if (warehouseId) qs.append("warehouseId", warehouseId);
+        const response: any = await apiClient.get(`/inventory/scan?${qs.toString()}`);
+        return response.data;
+    },
 };

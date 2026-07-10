@@ -188,6 +188,7 @@ export interface Product {
     minStockLevel: number;
     maxStockLevel: number;
     sku: string;
+    barcode?: string;
     isActive: boolean;
     productType?: ProductType;
     components?: BOMComponent[];
@@ -202,6 +203,7 @@ export interface CreateProductDTO {
     description: string;
     category: string;
     sku: string;
+    barcode?: string;
     price?: number;
     minStockLevel?: number;
     maxStockLevel?: number;
