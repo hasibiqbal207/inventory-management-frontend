@@ -89,6 +89,46 @@ export interface UpdateCategoryDTO extends Partial<CreateCategoryDTO> {
 // Product Types
 // ============================================================================
 
+// Cycle counting
+export type CycleCountStatus = "open" | "completed" | "cancelled";
+
+export interface CycleCountItem {
+    productId: string | Product;
+    systemQuantity: number;
+    countedQuantity?: number;
+    variance?: number;
+    counted: boolean;
+}
+
+export interface CycleCount {
+    _id: string;
+    reference: string;
+    warehouseId: string | Warehouse;
+    status: CycleCountStatus;
+    items: CycleCountItem[];
+    notes?: string;
+    createdBy: string;
+    completedAt?: string;
+    createdAt: string;
+}
+
+// ABC/XYZ classification
+export type ABCClass = "A" | "B" | "C";
+export type XYZClass = "X" | "Y" | "Z";
+
+export interface SkuClassification {
+    productId: string;
+    productName?: string;
+    sku?: string;
+    consumptionUnits: number;
+    consumptionValue: number;
+    valueShare: number;
+    cumulativeShare: number;
+    abc: ABCClass;
+    cv: number;
+    xyz: XYZClass;
+}
+
 // FX rates
 export type CurrencyCode = "USD" | "EUR" | "GBP" | "BDT";
 

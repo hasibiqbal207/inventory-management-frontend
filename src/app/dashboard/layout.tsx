@@ -23,6 +23,7 @@ import {
     RotateCcw,
     Hammer,
     Coins,
+    ClipboardCheck,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -54,6 +55,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Inventory", href: "/dashboard/inventory", icon: Warehouse, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "auditor", "executive"] },
         { name: "Batches", href: "/dashboard/batches", icon: Layers, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "auditor", "executive"] },
         { name: "Assembly", href: "/dashboard/assembly", icon: Hammer, roles: ["admin", "inventory_manager", "warehouse_supervisor"] },
+        { name: "Cycle Counts", href: "/dashboard/cycle-counts", icon: ClipboardCheck, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "auditor", "executive"] },
         { name: "Requests", href: "/dashboard/inventory/requests", icon: Bell, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"] },
         { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart, roles: ["admin", "inventory_manager", "procurement_officer", "sales_rep", "finance_officer", "auditor", "executive"] },
         { name: "Returns", href: "/dashboard/returns", icon: RotateCcw, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "sales_rep", "procurement_officer", "auditor", "executive"] },
