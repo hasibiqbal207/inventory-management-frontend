@@ -42,6 +42,7 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
         billingAddress: "",
         notes: "",
     });
+    const [landedCost, setLandedCost] = useState({ freight: 0, duty: 0, otherCharges: 0 });
 
     const addItem = () => {
         setItems([...items, { productId: "", quantity: 1, unitPrice: 0 }]);
@@ -85,6 +86,11 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
             ...(formData.shippingAddress && { shippingAddress: formData.shippingAddress }),
             ...(formData.billingAddress && { billingAddress: formData.billingAddress }),
             ...(formData.notes && { notes: formData.notes }),
+            // Landed cost only applies to purchase orders (goods you receive).
+            ...(orderType === "purchase" &&
+                (landedCost.freight || landedCost.duty || landedCost.otherCharges) && {
+                    landedCost,
+                }),
         };
 
         onSubmit(orderData);
@@ -253,6 +259,56 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
                     </div>
                 ))}
             </div>
+
+            {/* Landed cost (purchase orders): freight/duty/other rolled into
+                per-unit cost server-side, allocated by line value. */}
+            {orderType === "purchase" && (
+                <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+                    <Label className="text-sm font-semibold">Landed Cost ({getCurrencySymbol(currency)})</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <Label htmlFor="freight" className="text-xs text-gray-500">Freight</Label>
+                            <Input
+                                id="freight"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={landedCost.freight || ""}
+                                onChange={(e) => setLandedCost({ ...landedCost, freight: parseFloat(e.target.value) || 0 })}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="duty" className="text-xs text-gray-500">Duty / Customs</Label>
+                            <Input
+                                id="duty"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={landedCost.duty || ""}
+                                onChange={(e) => setLandedCost({ ...landedCost, duty: parseFloat(e.target.value) || 0 })}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="otherCharges" className="text-xs text-gray-500">Other charges</Label>
+                            <Input
+                                id="otherCharges"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={landedCost.otherCharges || ""}
+                                onChange={(e) => setLandedCost({ ...landedCost, otherCharges: parseFloat(e.target.value) || 0 })}
+                                placeholder="0.00"
+                            />
+                        </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                        These charges are allocated across line items by value and stored as a
+                        per-unit landed cost.
+                    </p>
+                </div>
+            )}
 
             {/* Total */}
             <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">

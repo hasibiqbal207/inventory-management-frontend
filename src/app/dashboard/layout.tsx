@@ -22,6 +22,7 @@ import {
     Layers,
     RotateCcw,
     Hammer,
+    Coins,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -68,6 +69,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Users", href: "/dashboard/admin/users", icon: Users, roles: ["admin"] },
         { name: "Settings", href: "/dashboard/admin/settings", icon: Settings, roles: ["admin", "it_support"] },
         { name: "Metrics", href: "/dashboard/admin/metrics", icon: BarChart3, roles: ["admin", "it_support"] },
+        { name: "Exchange Rates", href: "/dashboard/admin/exchange-rates", icon: Coins, roles: ["admin", "finance_officer"] },
     ];
 
     const filteredNavigation = navigation.filter(item =>

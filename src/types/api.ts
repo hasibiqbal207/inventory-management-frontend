@@ -89,6 +89,25 @@ export interface UpdateCategoryDTO extends Partial<CreateCategoryDTO> {
 // Product Types
 // ============================================================================
 
+// FX rates
+export type CurrencyCode = "USD" | "EUR" | "GBP" | "BDT";
+
+export interface ExchangeRate {
+    _id: string;
+    baseCurrency: CurrencyCode;
+    quoteCurrency: CurrencyCode;
+    rate: number;
+    effectiveDate: string;
+    source?: string;
+    createdAt: string;
+}
+
+export interface LandedCost {
+    freight: number;
+    duty: number;
+    otherCharges: number;
+}
+
 export type ProductType = "standard" | "kit" | "bundle";
 
 export interface BOMComponent {
@@ -545,6 +564,7 @@ export interface CreateOrderDTO {
     shippingAddress?: string;
     billingAddress?: string;
     notes?: string;
+    landedCost?: LandedCost;
 }
 
 // ============================================================================
