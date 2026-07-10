@@ -117,6 +117,21 @@ export interface CreateProductDTO {
 
 export interface UpdateProductDTO extends Partial<CreateProductDTO> { }
 
+// Bulk import result (per-row summary) returned by POST /products/import.
+export interface ImportRowError {
+    row: number;
+    sku?: string;
+    message: string;
+}
+
+export interface ImportResult {
+    created: number;
+    updated: number;
+    failed: number;
+    total: number;
+    errors: ImportRowError[];
+}
+
 // ============================================================================
 // Inventory Types
 // ============================================================================

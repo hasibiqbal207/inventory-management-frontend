@@ -4,6 +4,7 @@ import type {
     CreateProductDTO,
     UpdateProductDTO,
     APIResponse,
+    ImportResult,
 } from "@/types/api";
 
 /**
@@ -48,5 +49,29 @@ export const productsService = {
      */
     async delete(id: string): Promise<void> {
         await apiClient.delete(`/products/${id}`);
+    },
+
+    /**
+     * Bulk-import products from parsed CSV rows. Returns a per-row summary.
+     */
+    async bulkImport(rows: Record<string, string>[]): Promise<ImportResult> {
+        const response: any = await apiClient.post("/products/import", { rows });
+        return response.data;
+    },
+
+    /**
+     * Fetch all products as export rows (template column order) for CSV download.
+     */
+    async exportRows(): Promise<{ columns: string[]; rows: Record<string, unknown>[] }> {
+        const response: any = await apiClient.get("/products/export");
+        return response.data;
+    },
+
+    /**
+     * Fetch the import column template (header names).
+     */
+    async importTemplate(): Promise<string[]> {
+        const response: any = await apiClient.get("/products/import/template");
+        return response.data.columns;
     },
 };

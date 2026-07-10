@@ -15,8 +15,12 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { ProductForm } from "@/components/products/product-form";
-import { Plus, Search, Edit, Trash2, Package } from "lucide-react";
+import { ProductImportDialog } from "@/components/products/product-import-dialog";
+import { Plus, Search, Edit, Trash2, Package, Upload, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { exportRowsToCsv } from "@/lib/export";
+import { productsService } from "@/services/products.service";
+import { toast } from "sonner";
 import type { Product, CreateProductDTO } from "@/types/api";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -41,7 +45,29 @@ function ProductsPageContent() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const { columns, rows } = await productsService.exportRows();
+            if (rows.length === 0) {
+                toast.info("No products to export.");
+                return;
+            }
+            exportRowsToCsv(
+                "products-export",
+                columns.map((c) => ({ key: c, label: c })),
+                rows
+            );
+        } catch (error: any) {
+            toast.error(error?.error?.message || error?.message || "Export failed");
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Filter products based on search
     const filteredProducts = products?.filter((product) =>
@@ -115,13 +141,27 @@ function ProductsPageContent() {
                         Manage your product catalog
                     </p>
                 </div>
-                {canManageProducts && (
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Product
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {isExporting ? "Exporting…" : "Export CSV"}
                     </Button>
-                )}
+                    {canManageProducts && (
+                        <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Import
+                        </Button>
+                    )}
+                    {canManageProducts && (
+                        <Button onClick={() => setIsCreateDialogOpen(true)}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Product
+                        </Button>
+                    )}
+                </div>
             </div>
+
+            <ProductImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
 
             {/* Search */}
             <div className="mb-6">
