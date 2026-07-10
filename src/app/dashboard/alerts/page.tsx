@@ -6,9 +6,11 @@ import { alertsService } from "@/services/alerts.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
+import { BulkActionBar } from "@/components/ui/bulk-action-bar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Check, Search } from "lucide-react";
+import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Check, Search, CheckCheck, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
@@ -75,6 +77,53 @@ function AlertsPageContent() {
         },
     });
 
+    // --- Bulk selection ---
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    const toggleSelected = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const allOnPageSelected = !!alerts && alerts.length > 0 && alerts.every((a) => selectedIds.has(a._id));
+    const toggleSelectAllOnPage = () => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (allOnPageSelected) {
+                alerts?.forEach((a) => next.delete(a._id));
+            } else {
+                alerts?.forEach((a) => next.add(a._id));
+            }
+            return next;
+        });
+    };
+
+    const acknowledgeAll = useMutation({
+        mutationFn: () => alertsService.acknowledgeAll(),
+        onSuccess: (count) => {
+            queryClient.invalidateQueries({ queryKey: ["alerts"] });
+            toast.success(`Marked ${count} alert${count !== 1 ? "s" : ""} as read`);
+        },
+        onError: (e: any) => toast.error(e?.error?.message || "Failed to mark all as read"),
+    });
+
+    const bulkAction = useMutation({
+        mutationFn: ({ ids, action }: { ids: string[]; action: "acknowledge" | "resolve" | "delete" }) =>
+            alertsService.bulkAction(ids, action),
+        onSuccess: (count, { action }) => {
+            queryClient.invalidateQueries({ queryKey: ["alerts"] });
+            clearSelection();
+            const verb = action === "acknowledge" ? "acknowledged" : action === "resolve" ? "resolved" : "deleted";
+            toast.success(`${count} alert${count !== 1 ? "s" : ""} ${verb}`);
+        },
+        onError: (e: any) => toast.error(e?.error?.message || "Bulk action failed"),
+    });
+
     const getAlertIcon = (type: string, severity: string) => {
         if (severity === "critical") return <XCircle className="w-5 h-5 text-red-600" />;
         if (severity === "high") return <AlertTriangle className="w-5 h-5 text-orange-600" />;
@@ -118,6 +167,14 @@ function AlertsPageContent() {
                     </p>
                 </div>
                 <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => acknowledgeAll.mutate()}
+                        disabled={unreadCount === 0 || acknowledgeAll.isPending}
+                    >
+                        <CheckCheck className="w-4 h-4 mr-2" />
+                        Mark all as read
+                    </Button>
                 </div>
             </div>
 
@@ -146,16 +203,56 @@ function AlertsPageContent() {
                 </div>
             </div>
 
+            {/* Bulk action bar */}
+            <BulkActionBar count={selectedIds.size} onClear={clearSelection}>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => bulkAction.mutate({ ids: [...selectedIds], action: "acknowledge" })}
+                    disabled={bulkAction.isPending}
+                >
+                    <Check className="w-4 h-4 mr-1" />
+                    Acknowledge
+                </Button>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => bulkAction.mutate({ ids: [...selectedIds], action: "resolve" })}
+                    disabled={bulkAction.isPending}
+                >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Resolve
+                </Button>
+                <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => bulkAction.mutate({ ids: [...selectedIds], action: "delete" })}
+                    disabled={bulkAction.isPending}
+                >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                </Button>
+            </BulkActionBar>
+
             {/* Alerts List */}
             {alerts && alerts.length > 0 ? (
                 <div className="space-y-3">
+                    <label className="flex items-center gap-2 text-sm text-gray-600 px-1">
+                        <Checkbox checked={allOnPageSelected} onCheckedChange={toggleSelectAllOnPage} />
+                        Select all on this page
+                    </label>
                     {alerts.map((alert) => (
                         <Card
                             key={alert._id}
-                            className={`${alert.status === 'active' ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}
+                            className={`${alert.status === 'active' ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''} ${selectedIds.has(alert._id) ? 'ring-2 ring-blue-400' : ''}`}
                         >
                             <CardContent className="p-4">
                                 <div className="flex items-start gap-4">
+                                    <Checkbox
+                                        checked={selectedIds.has(alert._id)}
+                                        onCheckedChange={() => toggleSelected(alert._id)}
+                                        className="mt-1"
+                                    />
                                     <div className="mt-1">
                                         {getAlertIcon(alert.type, alert.severity)}
                                     </div>

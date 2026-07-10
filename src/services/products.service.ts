@@ -70,6 +70,12 @@ export const productsService = {
         await apiClient.delete(`/products/${id}`);
     },
 
+    /** Bulk activate/deactivate/delete a set of products. Returns count affected. */
+    async bulkAction(ids: string[], action: "activate" | "deactivate" | "delete"): Promise<number> {
+        const response: any = await apiClient.post("/products/bulk", { ids, action });
+        return response.data.affected;
+    },
+
     /**
      * Bulk-import products from parsed CSV rows. Returns a per-row summary.
      */

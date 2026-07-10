@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProductsPaginated, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
+import { BulkActionBar } from "@/components/ui/bulk-action-bar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { ProductForm } from "@/components/products/product-form";
 import { ProductImportDialog } from "@/components/products/product-import-dialog";
-import { Plus, Search, Edit, Trash2, Package, Upload, Download } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Package, Upload, Download, Power, PowerOff } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { exportRowsToCsv } from "@/lib/export";
 import { productsService } from "@/services/products.service";
@@ -61,6 +64,41 @@ function ProductsPageContent() {
     const createProduct = useCreateProduct();
     const updateProduct = useUpdateProduct();
     const deleteProduct = useDeleteProduct();
+    const queryClient = useQueryClient();
+
+    // --- Bulk selection ---
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const toggleSelected = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+    const clearSelection = () => setSelectedIds(new Set());
+    const allOnPageSelected = !!products && products.length > 0 && products.every((p) => selectedIds.has(p._id));
+    const toggleSelectAllOnPage = () => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (allOnPageSelected) products?.forEach((p) => next.delete(p._id));
+            else products?.forEach((p) => next.add(p._id));
+            return next;
+        });
+    };
+
+    const bulkAction = useMutation({
+        mutationFn: ({ ids, action }: { ids: string[]; action: "activate" | "deactivate" | "delete" }) =>
+            productsService.bulkAction(ids, action),
+        onSuccess: (count, { action }) => {
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            clearSelection();
+            const verb = action === "delete" ? "deleted" : action === "activate" ? "activated" : "deactivated";
+            toast.success(`${count} product${count !== 1 ? "s" : ""} ${verb}`);
+        },
+        onError: (e: any) => toast.error(e?.error?.message || "Bulk action failed"),
+    });
+
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -193,16 +231,48 @@ function ProductsPageContent() {
                 </div>
             </div>
 
+            {/* Bulk action bar */}
+            {canManageProducts && (
+                <BulkActionBar count={selectedIds.size} onClear={clearSelection}>
+                    <Button size="sm" variant="outline" onClick={() => bulkAction.mutate({ ids: [...selectedIds], action: "activate" })} disabled={bulkAction.isPending}>
+                        <Power className="w-4 h-4 mr-1" /> Activate
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => bulkAction.mutate({ ids: [...selectedIds], action: "deactivate" })} disabled={bulkAction.isPending}>
+                        <PowerOff className="w-4 h-4 mr-1" /> Deactivate
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => bulkAction.mutate({ ids: [...selectedIds], action: "delete" })} disabled={bulkAction.isPending}>
+                        <Trash2 className="w-4 h-4 mr-1" /> Delete
+                    </Button>
+                </BulkActionBar>
+            )}
+
+            {/* Select all on page */}
+            {canManageProducts && filteredProducts && filteredProducts.length > 0 && (
+                <label className="flex items-center gap-2 text-sm text-gray-600 mb-3 px-1">
+                    <Checkbox checked={allOnPageSelected} onCheckedChange={toggleSelectAllOnPage} />
+                    Select all on this page
+                </label>
+            )}
+
             {/* Products Grid */}
             {filteredProducts && filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
-                        <Card key={product._id} className="hover:shadow-lg transition-shadow">
+                        <Card key={product._id} className={`hover:shadow-lg transition-shadow ${selectedIds.has(product._id) ? 'ring-2 ring-blue-400' : ''}`}>
                             <CardHeader>
                                 <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <CardTitle className="text-lg">{product.productName}</CardTitle>
-                                        <p className="text-sm text-muted-foreground mt-1">SKU: {product.sku}</p>
+                                    <div className="flex items-start gap-2 flex-1">
+                                        {canManageProducts && (
+                                            <Checkbox
+                                                checked={selectedIds.has(product._id)}
+                                                onCheckedChange={() => toggleSelected(product._id)}
+                                                className="mt-1"
+                                            />
+                                        )}
+                                        <div className="flex-1">
+                                            <CardTitle className="text-lg">{product.productName}</CardTitle>
+                                            <p className="text-sm text-muted-foreground mt-1">SKU: {product.sku}</p>
+                                        </div>
                                     </div>
                                     <Badge variant={product.isActive ? "success" : "default"}>
                                         {product.isActive ? "Active" : "Inactive"}

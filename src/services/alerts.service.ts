@@ -52,4 +52,16 @@ export const alertsService = {
     async delete(id: string): Promise<void> {
         await apiClient.delete(`/alerts/${id}`);
     },
+
+    /** Mark all active alerts as acknowledged. Returns the count affected. */
+    async acknowledgeAll(): Promise<number> {
+        const response: any = await apiClient.post(`/alerts/acknowledge-all`, {});
+        return response.data.acknowledged;
+    },
+
+    /** Bulk acknowledge/resolve/delete a set of alerts. Returns count affected. */
+    async bulkAction(ids: string[], action: "acknowledge" | "resolve" | "delete"): Promise<number> {
+        const response: any = await apiClient.post(`/alerts/bulk`, { ids, action });
+        return response.data.affected;
+    },
 };
