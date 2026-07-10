@@ -183,6 +183,63 @@ export interface RemoveStockDTO {
 }
 
 // ============================================================================
+// Returns / RMA Types
+// ============================================================================
+
+export type ReturnStatus =
+    | "requested"
+    | "approved"
+    | "received"
+    | "completed"
+    | "rejected"
+    | "cancelled";
+
+export type ReturnType = "customer" | "supplier";
+
+export type ReturnDisposition = "restock" | "scrap" | "quarantine";
+
+export interface ReturnItem {
+    productId: string | Product;
+    quantity: number;
+    reason: string;
+    disposition: ReturnDisposition;
+}
+
+export interface ReturnRMA {
+    _id: string;
+    rmaNumber: string;
+    returnType: ReturnType;
+    status: ReturnStatus;
+    orderId?: string;
+    customerId?: string | { firstName: string; lastName: string };
+    supplierId?: string | { companyName: string };
+    warehouseId: string | Warehouse;
+    items: ReturnItem[];
+    reason: string;
+    notes?: string;
+    rejectionReason?: string;
+    restocked: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateReturnDTO {
+    returnType: ReturnType;
+    warehouseId: string;
+    customerId?: string;
+    supplierId?: string;
+    orderId?: string;
+    reason: string;
+    notes?: string;
+    items: Array<{
+        productId: string;
+        quantity: number;
+        reason?: string;
+        disposition: ReturnDisposition;
+    }>;
+}
+
+// ============================================================================
 // Batch / Lot Tracking Types
 // ============================================================================
 

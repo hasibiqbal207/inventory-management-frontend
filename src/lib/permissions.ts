@@ -21,6 +21,8 @@ export const PERMISSIONS = {
     transferStock: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"],
     approveInventoryRequests: ["admin", "inventory_manager", "warehouse_supervisor"],
     createOrders: ["admin", "sales_rep", "procurement_officer"],
+    manageReturns: ["admin", "inventory_manager", "warehouse_supervisor", "sales_rep", "procurement_officer"],
+    receiveReturns: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"],
     updateOrderStatus: ["admin", "warehouse_staff", "warehouse_supervisor", "sales_rep", "procurement_officer"],
     deleteOrders: ["admin"],
     viewInventoryReport: ["admin", "inventory_manager", "warehouse_supervisor", "auditor", "executive"],

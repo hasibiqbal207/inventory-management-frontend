@@ -22,6 +22,8 @@ export function usePermissions() {
         canTransferStock: can("transferStock"),
         canApproveInventoryRequests: can("approveInventoryRequests"),
         canCreateOrders: can("createOrders"),
+        canManageReturns: can("manageReturns"),
+        canReceiveReturns: can("receiveReturns"),
         canUpdateOrderStatus: can("updateOrderStatus"),
         canDeleteOrders: can("deleteOrders"),
         canViewInventoryReport: can("viewInventoryReport"),
