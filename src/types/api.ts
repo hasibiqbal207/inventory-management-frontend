@@ -89,6 +89,30 @@ export interface UpdateCategoryDTO extends Partial<CreateCategoryDTO> {
 // Product Types
 // ============================================================================
 
+// Webhooks / integrations
+export type WebhookEvent =
+    | "order.created"
+    | "order.completed"
+    | "order.cancelled"
+    | "stock.low"
+    | "stock.adjusted"
+    | "product.created";
+
+export interface Webhook {
+    _id: string;
+    url: string;
+    events: WebhookEvent[];
+    isActive: boolean;
+    description?: string;
+    failureCount: number;
+    lastTriggeredAt?: string;
+    createdAt: string;
+}
+
+export interface CreatedWebhook extends Webhook {
+    secret: string;
+}
+
 // Cycle counting
 export type CycleCountStatus = "open" | "completed" | "cancelled";
 
@@ -587,6 +611,9 @@ export interface Order {
     shippingAddress?: string;
     billingAddress?: string;
     notes?: string;
+    landedCost?: LandedCost;
+    externalChannel?: string;
+    externalOrderId?: string;
     createdBy: string;
     updatedBy: string;
     createdAt: string;

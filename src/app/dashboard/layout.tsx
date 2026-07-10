@@ -24,6 +24,7 @@ import {
     Hammer,
     Coins,
     ClipboardCheck,
+    Webhook as WebhookIcon,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -72,6 +73,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Settings", href: "/dashboard/admin/settings", icon: Settings, roles: ["admin", "it_support"] },
         { name: "Metrics", href: "/dashboard/admin/metrics", icon: BarChart3, roles: ["admin", "it_support"] },
         { name: "Exchange Rates", href: "/dashboard/admin/exchange-rates", icon: Coins, roles: ["admin", "finance_officer"] },
+        { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: WebhookIcon, roles: ["admin", "it_support"] },
     ];
 
     const filteredNavigation = navigation.filter(item =>
