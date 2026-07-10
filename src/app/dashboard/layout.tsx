@@ -26,6 +26,7 @@ import {
     ClipboardCheck,
     Webhook as WebhookIcon,
     ScanLine,
+    ShieldCheck,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -76,6 +77,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Metrics", href: "/dashboard/admin/metrics", icon: BarChart3, roles: ["admin", "it_support"] },
         { name: "Exchange Rates", href: "/dashboard/admin/exchange-rates", icon: Coins, roles: ["admin", "finance_officer"] },
         { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: WebhookIcon, roles: ["admin", "it_support"] },
+        { name: "Access Policy", href: "/dashboard/admin/permissions", icon: ShieldCheck, roles: ["admin"] },
     ];
 
     const filteredNavigation = navigation.filter(item =>

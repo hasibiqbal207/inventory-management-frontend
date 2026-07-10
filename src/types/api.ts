@@ -89,6 +89,14 @@ export interface UpdateCategoryDTO extends Partial<CreateCategoryDTO> {
 // Product Types
 // ============================================================================
 
+// Permission policies (ABAC)
+export interface PermissionPolicy {
+    key: string;
+    allowedRoles: UserRole[];
+    isDefault: boolean;
+    description?: string;
+}
+
 // Webhooks / integrations
 export type WebhookEvent =
     | "order.created"
