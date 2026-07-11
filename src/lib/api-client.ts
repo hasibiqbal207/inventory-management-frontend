@@ -36,28 +36,70 @@ apiClient.interceptors.request.use(
 /**
  * Response interceptor - Handle responses and errors
  */
+// Serialize concurrent refresh attempts so a burst of 401s triggers one refresh.
+let refreshPromise: Promise<string | null> | null = null;
+async function tryRefresh(): Promise<string | null> {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null;
+    if (!stored) return null;
+    try {
+        // Call the endpoint directly (bare axios) to avoid recursing through this
+        // interceptor.
+        const base = apiClient.defaults.baseURL || "";
+        const res = await fetch(`${base}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken: stored }),
+        });
+        if (!res.ok) return null;
+        const json = await res.json();
+        const token = json?.data?.token;
+        const newRefresh = json?.data?.refreshToken;
+        if (token) localStorage.setItem("auth_token", token);
+        if (newRefresh) localStorage.setItem("refresh_token", newRefresh);
+        return token ?? null;
+    } catch {
+        return null;
+    }
+}
+
 apiClient.interceptors.response.use(
     (response) => {
         // Return the data directly for successful responses
         return response.data;
     },
-    (error: AxiosError<APIError>) => {
+    async (error: AxiosError<APIError>) => {
         // Handle different error scenarios
         if (error.response) {
             const apiError = error.response.data;
-
-            // Handle token expiration/invalidity
-            // Only logout on specific authentication errors, not all 401s
-            if (
+            const isTokenError =
                 apiError?.error?.code === "TOKEN_EXPIRED" ||
                 apiError?.error?.code === "TOKEN_INVALID" ||
                 apiError?.error?.code === "INVALID_TOKEN" ||
-                apiError?.error?.code === "NO_TOKEN"
-            ) {
+                apiError?.error?.code === "NO_TOKEN";
+
+            // On an expired access token, attempt a one-time transparent refresh
+            // and retry the original request before giving up.
+            const original: any = error.config;
+            if (isTokenError && original && !original._retried && typeof window !== "undefined") {
+                original._retried = true;
+                refreshPromise = refreshPromise ?? tryRefresh();
+                const newToken = await refreshPromise;
+                refreshPromise = null;
+                if (newToken) {
+                    original.headers = original.headers ?? {};
+                    original.headers.Authorization = `Bearer ${newToken}`;
+                    return apiClient(original);
+                }
+            }
+
+            // Handle token expiration/invalidity
+            // Only logout on specific authentication errors, not all 401s
+            if (isTokenError) {
                 console.warn("Authentication error detected:", apiError?.error?.code);
                 // Clear token and redirect to login
                 if (typeof window !== "undefined") {
                     localStorage.removeItem("auth_token");
+                    localStorage.removeItem("refresh_token");
                     // Only redirect if not already on login page
                     if (!window.location.pathname.includes("/login")) {
                         console.log("Redirecting to login due to auth error");

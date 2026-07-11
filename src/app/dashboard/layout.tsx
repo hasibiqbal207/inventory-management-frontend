@@ -27,6 +27,7 @@ import {
     Webhook as WebhookIcon,
     ScanLine,
     ShieldCheck,
+    Lock,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -68,6 +69,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         { name: "Alerts", href: "/dashboard/alerts", icon: Bell, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff"] },
         { name: "Reports", href: "/dashboard/reports", icon: BarChart3, roles: ["admin", "inventory_manager", "warehouse_supervisor", "procurement_officer", "sales_rep", "finance_officer", "auditor", "executive"] },
         { name: "Audit Log", href: "/dashboard/audit-log", icon: History, roles: ["admin", "auditor", "it_support"] },
+        { name: "Security", href: "/dashboard/security", icon: Lock, roles: ["admin", "inventory_manager", "warehouse_supervisor", "warehouse_staff", "procurement_officer", "sales_rep", "finance_officer", "auditor", "it_support", "executive"] },
     ];
 
     const adminNavigation = [

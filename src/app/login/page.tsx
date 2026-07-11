@@ -16,6 +16,8 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [mfaRequired, setMfaRequired] = useState(false);
+    const [mfaToken, setMfaToken] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,8 +27,19 @@ export default function LoginPage() {
             return;
         }
 
+        if (mfaRequired && !mfaToken) {
+            toast.error("Enter your authenticator code");
+            return;
+        }
+
         try {
-            await login({ email, password });
+            const result = await login({ email, password, ...(mfaToken && { mfaToken }) });
+            if (result.mfaRequired) {
+                // Password OK; now ask for the TOTP code.
+                setMfaRequired(true);
+                toast.info("Enter the 6-digit code from your authenticator app");
+                return;
+            }
             toast.success("Login successful!");
             router.push("/dashboard");
         } catch (error: any) {
@@ -116,6 +129,32 @@ export default function LoginPage() {
                                     )}
                                 </button>
                             </div>
+                        </div>
+
+                        {/* MFA code (shown after password when the account has MFA on) */}
+                        {mfaRequired && (
+                            <div className="space-y-2">
+                                <Label htmlFor="mfaToken" className="text-amber-950 font-medium">
+                                    Authenticator code
+                                </Label>
+                                <Input
+                                    id="mfaToken"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={6}
+                                    value={mfaToken}
+                                    onChange={(e) => setMfaToken(e.target.value.replace(/\D/g, ""))}
+                                    placeholder="123456"
+                                    className="tracking-widest text-center text-lg"
+                                    autoFocus
+                                />
+                            </div>
+                        )}
+
+                        <div className="text-right">
+                            <Link href="/forgot-password" className="text-sm text-amber-800 hover:text-amber-900 hover:underline">
+                                Forgot password?
+                            </Link>
                         </div>
 
                         {/* Submit Button */}

@@ -39,6 +39,7 @@ export interface User {
     lastName: string;
     role: UserRole;
     isActive: boolean;
+    mfaEnabled?: boolean;
     createdAt: string;
     updatedAt: string;
 }

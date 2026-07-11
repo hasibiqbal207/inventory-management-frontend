@@ -8,7 +8,7 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (credentials: LoginCredentials) => Promise<void>;
+    login: (credentials: LoginCredentials & { mfaToken?: string }) => Promise<{ mfaRequired: boolean }>;
     register: (data: RegisterData) => Promise<void>;
     logout: () => Promise<void>;
     setUser: (user: User | null) => void;
@@ -36,11 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .finally(() => setIsLoading(false));
     }, []);
 
-    const login = useCallback(async (credentials: LoginCredentials) => {
+    const login = useCallback(async (credentials: LoginCredentials & { mfaToken?: string }) => {
         setIsLoading(true);
         try {
-            const { user, token } = await authService.login(credentials);
-            setUser(user);
+            const result = await authService.login(credentials);
+            // MFA-enabled account with no code yet: signal the caller to prompt.
+            if (result.mfaRequired) {
+                return { mfaRequired: true };
+            }
+            if (result.user) setUser(result.user);
+            return { mfaRequired: false };
         } finally {
             setIsLoading(false);
         }

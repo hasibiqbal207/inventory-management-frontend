@@ -25,21 +25,63 @@ export const authService = {
     },
 
     /**
-     * Login user
+     * Login user. May return { mfaRequired: true } when the account has MFA on
+     * and no code was supplied — the caller should re-submit with mfaToken.
      */
-    async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    async login(credentials: LoginCredentials & { mfaToken?: string }): Promise<AuthResponse & { mfaRequired?: boolean }> {
         const response: any = await apiClient.post(
             "/auth/login",
             credentials
         );
 
-        // Interceptor returns response.data, so response is APIResponse<AuthResponse>
-        // Store token in localStorage
-        if (typeof window !== "undefined" && response.data.token) {
-            localStorage.setItem("auth_token", response.data.token);
+        if (typeof window !== "undefined") {
+            if (response.data.token) localStorage.setItem("auth_token", response.data.token);
+            if (response.data.refreshToken) localStorage.setItem("refresh_token", response.data.refreshToken);
         }
 
         return response.data;
+    },
+
+    /**
+     * Exchange the stored refresh token for a fresh access+refresh pair.
+     * Returns the new access token, or null if refresh failed.
+     */
+    async refresh(): Promise<string | null> {
+        const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null;
+        if (!refreshToken) return null;
+        try {
+            const response: any = await apiClient.post("/auth/refresh", { refreshToken });
+            if (typeof window !== "undefined") {
+                localStorage.setItem("auth_token", response.data.token);
+                localStorage.setItem("refresh_token", response.data.refreshToken);
+            }
+            return response.data.token;
+        } catch {
+            this.clearAuth();
+            return null;
+        }
+    },
+
+    async forgotPassword(email: string): Promise<{ devResetToken?: string }> {
+        const response: any = await apiClient.post("/auth/forgot-password", { email });
+        return response.data;
+    },
+
+    async resetPassword(token: string, password: string): Promise<void> {
+        await apiClient.post("/auth/reset-password", { token, password });
+    },
+
+    async setupMfa(): Promise<{ secret: string; otpauthUri: string }> {
+        const response: any = await apiClient.post("/auth/mfa/setup", {});
+        return response.data;
+    },
+
+    async enableMfa(token: string): Promise<void> {
+        await apiClient.post("/auth/mfa/enable", { token });
+    },
+
+    async disableMfa(token: string): Promise<void> {
+        await apiClient.post("/auth/mfa/disable", { token });
     },
 
     /**
@@ -56,13 +98,12 @@ export const authService = {
      * Logout user
      */
     async logout(): Promise<void> {
+        const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null;
         try {
-            await apiClient.post("/auth/logout");
+            // Send the refresh token so the server can actually revoke it.
+            await apiClient.post("/auth/logout", refreshToken ? { refreshToken } : {});
         } finally {
-            // Always clear token, even if API call fails
-            if (typeof window !== "undefined") {
-                localStorage.removeItem("auth_token");
-            }
+            this.clearAuth();
         }
     },
 
@@ -89,6 +130,7 @@ export const authService = {
     clearAuth(): void {
         if (typeof window !== "undefined") {
             localStorage.removeItem("auth_token");
+            localStorage.removeItem("refresh_token");
         }
     },
 };
