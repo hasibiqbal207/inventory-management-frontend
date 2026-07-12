@@ -5,9 +5,9 @@ import { useOrder, useUpdateOrderStatus } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Package, ShoppingCart, Calendar, User, MapPin, CreditCard, FileText } from "lucide-react";
+import { ArrowLeft, Package, Calendar, User, MapPin, CreditCard, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import type { OrderStatus, OrderType, Product, User as UserType } from "@/types/api";
+import type { OrderStatus, OrderType, Product, Supplier, User as UserType } from "@/types/api";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function OrderDetailsPage() {
@@ -193,12 +193,12 @@ function OrderDetailsContent({ id }: { id: string }) {
                                     <p className="font-medium">
                                         {order.orderType === "sales"
                                             ? (order.customerId && typeof order.customerId === 'object' ? `${(order.customerId as UserType).firstName} ${(order.customerId as UserType).lastName}` : 'Customer')
-                                            : (order.supplierId && typeof order.supplierId === 'object' ? (order.supplierId as any).companyName : 'Supplier')
+                                            : (order.supplierId && typeof order.supplierId === 'object' ? (order.supplierId as Supplier).companyName : 'Supplier')
                                         }
                                     </p>
                                     {order.orderType === "purchase" && order.supplierId && typeof order.supplierId === 'object' && (
                                         <p className="text-xs text-muted-foreground">
-                                            Contact: {(order.supplierId as any).contactPerson.firstName} {(order.supplierId as any).contactPerson.lastName}
+                                            Contact: {(order.supplierId as Supplier).contactPerson.firstName} {(order.supplierId as Supplier).contactPerson.lastName}
                                         </p>
                                     )}
                                 </div>

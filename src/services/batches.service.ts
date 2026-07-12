@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import type { Batch, FEFOAllocationPreview } from "@/types/api";
 
 /**
@@ -19,7 +19,7 @@ export const batchesService = {
         if (warehouseId) params.append("warehouseId", warehouseId);
         if (includeDepleted) params.append("includeDepleted", "true");
 
-        const response: any = await apiClient.get(`/batches?${params.toString()}`);
+        const response = await http.get<{ data: { batches: Batch[] } }>(`/batches?${params.toString()}`);
         return response.data.batches;
     },
 
@@ -30,12 +30,12 @@ export const batchesService = {
         const params = new URLSearchParams({ days: days.toString() });
         if (warehouseId) params.append("warehouseId", warehouseId);
 
-        const response: any = await apiClient.get(`/batches/expiring?${params.toString()}`);
+        const response = await http.get<{ data: { batches: Batch[] } }>(`/batches/expiring?${params.toString()}`);
         return response.data.batches;
     },
 
     async getById(id: string): Promise<Batch> {
-        const response: any = await apiClient.get(`/batches/${id}`);
+        const response = await http.get<{ data: { batch: Batch } }>(`/batches/${id}`);
         return response.data.batch;
     },
 
@@ -47,7 +47,7 @@ export const batchesService = {
         warehouseId: string,
         quantity: number
     ): Promise<FEFOAllocationPreview> {
-        const response: any = await apiClient.post("/batches/preview-allocation", {
+        const response = await http.post<{ data: FEFOAllocationPreview }>("/batches/preview-allocation", {
             productId,
             warehouseId,
             quantity,

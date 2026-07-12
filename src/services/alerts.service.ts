@@ -1,5 +1,5 @@
-import { apiClient } from "@/lib/api-client";
-import type { Alert, APIResponse, ListParams, PaginatedResponse } from "@/types/api";
+import { http } from "@/lib/api-client";
+import type { Alert, ListParams, PaginatedResponse, PaginationMeta } from "@/types/api";
 
 const ALL_ITEMS_LIMIT = 1000;
 
@@ -17,7 +17,7 @@ export const alertsService = {
         if (filters?.status) params.append("status", filters.status);
         if (filters?.severity) params.append("severity", filters.severity);
 
-        const response: any = await apiClient.get(`/alerts?${params.toString()}`);
+        const response = await http.get<{ data: { alerts: Alert[] } }>(`/alerts?${params.toString()}`);
         return response.data.alerts;
     },
 
@@ -30,38 +30,38 @@ export const alertsService = {
         if (params.status) qs.append("status", params.status);
         if (params.severity) qs.append("severity", params.severity);
 
-        const response: any = await apiClient.get(`/alerts?${qs.toString()}`);
+        const response = await http.get<{ data: { alerts: Alert[]; pagination: PaginationMeta } }>(`/alerts?${qs.toString()}`);
         return { data: response.data.alerts, pagination: response.data.pagination };
     },
 
     async getById(id: string): Promise<Alert> {
-        const response: any = await apiClient.get(`/alerts/${id}`);
+        const response = await http.get<{ data: { alert: Alert } }>(`/alerts/${id}`);
         return response.data.alert;
     },
 
     async acknowledge(id: string): Promise<Alert> {
-        const response: any = await apiClient.put(`/alerts/${id}/acknowledge`);
+        const response = await http.put<{ data: { alert: Alert } }>(`/alerts/${id}/acknowledge`);
         return response.data.alert;
     },
 
     async resolve(id: string): Promise<Alert> {
-        const response: any = await apiClient.put(`/alerts/${id}/resolve`);
+        const response = await http.put<{ data: { alert: Alert } }>(`/alerts/${id}/resolve`);
         return response.data.alert;
     },
 
     async delete(id: string): Promise<void> {
-        await apiClient.delete(`/alerts/${id}`);
+        await http.delete(`/alerts/${id}`);
     },
 
     /** Mark all active alerts as acknowledged. Returns the count affected. */
     async acknowledgeAll(): Promise<number> {
-        const response: any = await apiClient.post(`/alerts/acknowledge-all`, {});
+        const response = await http.post<{ data: { acknowledged: number } }>(`/alerts/acknowledge-all`, {});
         return response.data.acknowledged;
     },
 
     /** Bulk acknowledge/resolve/delete a set of alerts. Returns count affected. */
     async bulkAction(ids: string[], action: "acknowledge" | "resolve" | "delete"): Promise<number> {
-        const response: any = await apiClient.post(`/alerts/bulk`, { ids, action });
+        const response = await http.post<{ data: { affected: number } }>(`/alerts/bulk`, { ids, action });
         return response.data.affected;
     },
 };

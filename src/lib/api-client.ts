@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 import type { APIError, APIResponse } from "@/types/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6002/api";
@@ -79,7 +79,7 @@ apiClient.interceptors.response.use(
 
             // On an expired access token, attempt a one-time transparent refresh
             // and retry the original request before giving up.
-            const original: any = error.config;
+            const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
             if (isTokenError && original && !original._retried && typeof window !== "undefined") {
                 original._retried = true;
                 refreshPromise = refreshPromise ?? tryRefresh();
@@ -153,3 +153,25 @@ export async function apiRequest<T>(
         throw error;
     }
 }
+
+/**
+ * Typed HTTP helpers.
+ *
+ * The response interceptor above resolves each request to the raw API envelope
+ * body (`response.data`) rather than the full AxiosResponse. Axios's own
+ * generics don't model that unwrapping, so these thin wrappers restore type
+ * safety: callers declare the envelope shape they expect (e.g.
+ * `http.get<{ returns: ReturnRMA[] }>(...)`) and receive it without casting.
+ */
+export const http = {
+    get: <T>(url: string, config?: AxiosRequestConfig) =>
+        apiClient.get(url, config) as unknown as Promise<T>,
+    post: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+        apiClient.post(url, data, config) as unknown as Promise<T>,
+    put: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+        apiClient.put(url, data, config) as unknown as Promise<T>,
+    patch: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+        apiClient.patch(url, data, config) as unknown as Promise<T>,
+    delete: <T>(url: string, config?: AxiosRequestConfig) =>
+        apiClient.delete(url, config) as unknown as Promise<T>,
+};

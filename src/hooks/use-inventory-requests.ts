@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { inventoryRequestService } from "@/services/inventory-request.service";
 import { RequestStatus, RequestType, CreateInventoryRequestDTO } from "@/types/api";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 export function useInventoryRequests(params?: { status?: RequestStatus; type?: RequestType }) {
     return useQuery({
@@ -27,7 +28,7 @@ export function useCreateInventoryRequest() {
             queryClient.invalidateQueries({ queryKey: ["inventory-requests"] });
             toast.success("Inventory request submitted for approval");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error.response?.data?.error || "Failed to submit request");
         },
     });
@@ -44,7 +45,7 @@ export function useApproveInventoryRequest() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Request approved and inventory updated");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error.response?.data?.error || "Failed to approve request");
         },
     });
@@ -60,7 +61,7 @@ export function useRejectInventoryRequest() {
             queryClient.invalidateQueries({ queryKey: ["inventory-requests"] });
             toast.success("Request rejected");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error.response?.data?.error || "Failed to reject request");
         },
     });

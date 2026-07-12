@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Check, Search, CheckCheck, Trash2 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getErrorMessage } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 
@@ -109,7 +109,7 @@ function AlertsPageContent() {
             queryClient.invalidateQueries({ queryKey: ["alerts"] });
             toast.success(`Marked ${count} alert${count !== 1 ? "s" : ""} as read`);
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to mark all as read"),
+        onError: (e: unknown) => toast.error(getErrorMessage(e, "Failed to mark all as read")),
     });
 
     const bulkAction = useMutation({
@@ -121,7 +121,7 @@ function AlertsPageContent() {
             const verb = action === "acknowledge" ? "acknowledged" : action === "resolve" ? "resolved" : "deleted";
             toast.success(`${count} alert${count !== 1 ? "s" : ""} ${verb}`);
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Bulk action failed"),
+        onError: (e: unknown) => toast.error(getErrorMessage(e, "Bulk action failed")),
     });
 
     const getAlertIcon = (type: string, severity: string) => {

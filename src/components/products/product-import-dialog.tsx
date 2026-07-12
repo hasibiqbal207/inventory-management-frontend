@@ -16,6 +16,7 @@ import { exportRowsToCsv } from "@/lib/export";
 import { productsService } from "@/services/products.service";
 import type { ImportResult } from "@/types/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ProductImportDialogProps {
     open: boolean;
@@ -84,8 +85,8 @@ export function ProductImportDialog({ open, onOpenChange }: ProductImportDialogP
             } else {
                 toast.warning(`Imported with ${res.failed} error(s). See details below.`);
             }
-        } catch (error: any) {
-            toast.error(error?.error?.message || error?.message || "Import failed");
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error, "Import failed"));
         } finally {
             setIsImporting(false);
         }

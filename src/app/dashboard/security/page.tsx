@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Copy, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function SecurityPage() {
@@ -35,8 +36,8 @@ function SecurityContent() {
         try {
             const result = await authService.setupMfa();
             setSetup(result);
-        } catch (e: any) {
-            toast.error(e?.error?.message || "Failed to start MFA setup");
+        } catch (e: unknown) {
+            toast.error(getErrorMessage(e, "Failed to start MFA setup"));
         } finally {
             setBusy(false);
         }
@@ -51,8 +52,8 @@ function SecurityContent() {
             setSetup(null);
             setCode("");
             toast.success("Two-factor authentication enabled");
-        } catch (e: any) {
-            toast.error(e?.error?.message || "Invalid code — try again");
+        } catch (e: unknown) {
+            toast.error(getErrorMessage(e, "Invalid code — try again"));
         } finally {
             setBusy(false);
         }
@@ -66,8 +67,8 @@ function SecurityContent() {
             setMfaEnabled(false);
             setDisableCode("");
             toast.success("Two-factor authentication disabled");
-        } catch (e: any) {
-            toast.error(e?.error?.message || "Invalid code");
+        } catch (e: unknown) {
+            toast.error(getErrorMessage(e, "Invalid code"));
         } finally {
             setBusy(false);
         }

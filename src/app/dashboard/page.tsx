@@ -2,13 +2,20 @@
 
 import { Package, Warehouse, ShoppingCart, Bell, BookOpen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import { useAuth } from "@/contexts/auth-context";
 import { formatRole } from "@/lib/format";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { ModuleGuideCard } from "@/components/dashboard/module-guide-card";
 import { getModuleGuidesByRole } from "@/config/module-guides";
+
+interface DashboardStats {
+    totalProducts?: number;
+    totalWarehouses?: number;
+    pendingOrders?: number;
+    activeAlerts?: number;
+}
 
 export default function DashboardPage() {
     return (
@@ -25,7 +32,7 @@ function DashboardPageContent() {
     const { data: stats, isLoading } = useQuery({
         queryKey: ["dashboard-stats"],
         queryFn: async () => {
-            const response: any = await apiClient.get("/system/dashboard-stats");
+            const response = await http.get<{ data: DashboardStats }>("/system/dashboard-stats");
             return response.data;
         },
     });
@@ -67,7 +74,7 @@ function DashboardPageContent() {
                     Welcome back, {user?.firstName}!
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                    Here's an overview of your inventory system
+                    Here&apos;s an overview of your inventory system
                 </p>
             </div>
 

@@ -1,18 +1,18 @@
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import type { PermissionPolicy, UserRole } from "@/types/api";
 
 export const permissionPolicyService = {
     async list(): Promise<PermissionPolicy[]> {
-        const response: any = await apiClient.get(`/permission-policies`);
+        const response = await http.get<{ data: { policies: PermissionPolicy[] } }>(`/permission-policies`);
         return response.data.policies;
     },
 
     async set(key: string, allowedRoles: UserRole[]): Promise<PermissionPolicy> {
-        const response: any = await apiClient.put(`/permission-policies/${encodeURIComponent(key)}`, { allowedRoles });
+        const response = await http.put<{ data: { policy: PermissionPolicy } }>(`/permission-policies/${encodeURIComponent(key)}`, { allowedRoles });
         return response.data.policy;
     },
 
     async reset(key: string): Promise<void> {
-        await apiClient.delete(`/permission-policies/${encodeURIComponent(key)}`);
+        await http.delete(`/permission-policies/${encodeURIComponent(key)}`);
     },
 };

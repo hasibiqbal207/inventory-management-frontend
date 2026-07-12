@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Layers, AlertTriangle, Package, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import type { Batch, BatchStatus, Product } from "@/types/api";
+import type { Batch, BatchStatus, Product, Warehouse } from "@/types/api";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function BatchesPage() {
@@ -61,7 +61,8 @@ function BatchesPageContent() {
 
     const productName = (p: string | Product | undefined) =>
         p && typeof p === "object" ? p.productName : "Product";
-    const warehouseName = (w: any) => (w && typeof w === "object" ? w.name : "—");
+    const warehouseName = (w: string | Warehouse | undefined) =>
+        w && typeof w === "object" ? w.name : "—";
 
     return (
         <div className="space-y-6">

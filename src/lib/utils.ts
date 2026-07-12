@@ -60,3 +60,24 @@ export function truncate(text: string, length: number): string {
 export function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
+
+/**
+ * Shape of an error thrown by the API client — either the rejected API envelope
+ * ({ error: { message } }) or a plain Error ({ message }).
+ */
+export interface ApiErrorLike {
+  error?: { code?: string; message?: string };
+  message?: string;
+  // Raw axios-style error shape, present when the value wasn't unwrapped by the
+  // response interceptor.
+  response?: { data?: { error?: string; message?: string } };
+}
+
+/**
+ * Pull a human-readable message out of an unknown thrown value, preferring the
+ * API envelope's error message, then a plain Error message, then a fallback.
+ */
+export function getErrorMessage(error: unknown, fallback = "Something went wrong"): string {
+  const e = error as ApiErrorLike | null | undefined;
+  return e?.error?.message || e?.message || fallback;
+}

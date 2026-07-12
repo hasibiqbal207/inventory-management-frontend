@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Users, Shield, Trash2, Mail, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getErrorMessage } from "@/lib/utils";
 import { formatRole } from "@/lib/format";
-import { UserRole } from "@/types/api";
+import { User, UserRole } from "@/types/api";
 
 const ROLES: UserRole[] = [
     "admin",
@@ -44,7 +44,7 @@ export default function UserManagementPage() {
 
 function UserManagementPageContent() {
     const queryClient = useQueryClient();
-    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -61,8 +61,8 @@ function UserManagementPageContent() {
             toast.success("User role updated successfully!");
             setIsRoleDialogOpen(false);
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to update role");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to update role"));
         },
     });
 
@@ -73,17 +73,17 @@ function UserManagementPageContent() {
             toast.success("User deleted successfully!");
             setIsDeleteDialogOpen(false);
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to delete user");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to delete user"));
         },
     });
 
-    const handleRoleUpdate = (user: any) => {
+    const handleRoleUpdate = (user: User) => {
         setSelectedUser(user);
         setIsRoleDialogOpen(true);
     };
 
-    const handleDeleteClick = (user: any) => {
+    const handleDeleteClick = (user: User) => {
         setSelectedUser(user);
         setIsDeleteDialogOpen(true);
     };
@@ -139,7 +139,7 @@ function UserManagementPageContent() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users?.map((user: any) => (
+                                {users?.map((user: User) => (
                                     <tr key={user._id} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ function UserManagementPageContent() {
                                     key={role}
                                     variant={selectedUser?.role === role ? "default" : "outline"}
                                     className="justify-start"
-                                    onClick={() => updateRoleMutation.mutate({ id: selectedUser._id, role })}
+                                    onClick={() => selectedUser && updateRoleMutation.mutate({ id: selectedUser._id, role })}
                                     disabled={updateRoleMutation.isPending}
                                 >
                                     {formatRole(role)}
@@ -248,7 +248,7 @@ function UserManagementPageContent() {
                             </Button>
                             <Button
                                 variant="destructive"
-                                onClick={() => deleteUserMutation.mutate(selectedUser._id)}
+                                onClick={() => selectedUser && deleteUserMutation.mutate(selectedUser._id)}
                                 disabled={deleteUserMutation.isPending}
                             >
                                 {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}

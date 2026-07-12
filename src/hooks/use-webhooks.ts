@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhooksService } from "@/services/webhooks.service";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 export function useWebhooks() {
     return useQuery({
@@ -17,7 +18,7 @@ export function useCreateWebhook() {
             queryClient.invalidateQueries({ queryKey: ["webhooks"] });
             toast.success("Webhook created");
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to create webhook"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to create webhook"),
     });
 }
 
@@ -29,6 +30,6 @@ export function useDeleteWebhook() {
             queryClient.invalidateQueries({ queryKey: ["webhooks"] });
             toast.success("Webhook deleted");
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to delete webhook"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to delete webhook"),
     });
 }

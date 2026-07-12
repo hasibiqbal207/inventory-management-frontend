@@ -21,6 +21,7 @@ import { WarehouseForm } from "@/components/warehouses/warehouse-form";
 import { Warehouse, MapPin, Phone, Mail, Plus, Edit, Trash2, Search } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import type { Warehouse as WarehouseType, CreateWarehouseDTO } from "@/types/api";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -61,8 +62,8 @@ function WarehousesPageContent() {
             queryClient.invalidateQueries({ queryKey: ["warehouses"] });
             toast.success("Warehouse created successfully!");
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to create warehouse");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to create warehouse"));
         },
     });
 
@@ -73,8 +74,8 @@ function WarehousesPageContent() {
             queryClient.invalidateQueries({ queryKey: ["warehouses"] });
             toast.success("Warehouse updated successfully!");
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to update warehouse");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to update warehouse"));
         },
     });
 
@@ -84,8 +85,8 @@ function WarehousesPageContent() {
             queryClient.invalidateQueries({ queryKey: ["warehouses"] });
             toast.success("Warehouse deleted successfully!");
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to delete warehouse");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to delete warehouse"));
         },
     });
 

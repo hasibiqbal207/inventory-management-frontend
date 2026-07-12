@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { Package } from "lucide-react";
 
 function ResetPasswordForm() {
@@ -34,8 +35,8 @@ function ResetPasswordForm() {
             await authService.resetPassword(token, password);
             toast.success("Password reset — please log in");
             router.push("/login");
-        } catch (err: any) {
-            toast.error(err?.error?.message || "Reset failed. The link may have expired.");
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err, "Reset failed. The link may have expired."));
         } finally {
             setLoading(false);
         }

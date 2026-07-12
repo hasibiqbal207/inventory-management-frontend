@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { categoriesService } from "@/services/categories.service";
+import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +46,7 @@ function CategoriesPageContent() {
             queryClient.invalidateQueries({ queryKey: ["categories"] });
             toast.success("Category created");
         },
-        onError: (error: any) => toast.error(error?.error?.message || "Failed to create category"),
+        onError: (error: unknown) => toast.error(getErrorMessage(error, "Failed to create category")),
     });
 
     const updateCategory = useMutation({
@@ -59,7 +60,7 @@ function CategoriesPageContent() {
             queryClient.invalidateQueries({ queryKey: ["suppliers"] });
             toast.success("Category updated");
         },
-        onError: (error: any) => toast.error(error?.error?.message || "Failed to update category"),
+        onError: (error: unknown) => toast.error(getErrorMessage(error, "Failed to update category")),
     });
 
     const deleteCategory = useMutation({
@@ -68,7 +69,7 @@ function CategoriesPageContent() {
             queryClient.invalidateQueries({ queryKey: ["categories"] });
             toast.success("Category deleted");
         },
-        onError: (error: any) => toast.error(error?.error?.message || "Failed to delete category"),
+        onError: (error: unknown) => toast.error(getErrorMessage(error, "Failed to delete category")),
     });
 
     const [isFormOpen, setIsFormOpen] = useState(false);

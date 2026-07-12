@@ -12,7 +12,7 @@ export interface APIError {
     error: {
         code: string;
         message: string;
-        details?: any;
+        details?: unknown;
     };
 }
 
@@ -220,7 +220,7 @@ export interface CreateProductDTO {
     components?: BOMComponent[];
 }
 
-export interface UpdateProductDTO extends Partial<CreateProductDTO> { }
+export type UpdateProductDTO = Partial<CreateProductDTO>;
 
 // Assembly / BOM buildability
 export interface ComponentAvailability {
@@ -789,7 +789,7 @@ export type SettingDataType = "string" | "number" | "boolean" | "object" | "arra
 export interface Setting {
     category: string;
     key: string;
-    value: any;
+    value: unknown;
     dataType: SettingDataType;
     description: string;
     isSystem: boolean;
@@ -807,7 +807,7 @@ export interface AuditLog {
     entityType: string;
     entityId: string;
     action: AuditAction;
-    changes?: Record<string, any>;
+    changes?: Record<string, unknown>;
     performedBy?: { _id: string; firstName: string; lastName: string; email: string } | string;
     createdAt: string;
 }

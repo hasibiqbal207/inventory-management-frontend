@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { permissionPolicyService } from "@/services/permission-policy.service";
 import type { UserRole } from "@/types/api";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 export function usePermissionPolicies() {
     return useQuery({
@@ -19,7 +20,7 @@ export function useSetPolicy() {
             queryClient.invalidateQueries({ queryKey: ["permission-policies"] });
             toast.success("Policy updated");
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to update policy"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to update policy"),
     });
 }
 
@@ -31,6 +32,6 @@ export function useResetPolicy() {
             queryClient.invalidateQueries({ queryKey: ["permission-policies"] });
             toast.success("Policy reset to default");
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to reset policy"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to reset policy"),
     });
 }

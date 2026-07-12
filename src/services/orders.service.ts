@@ -1,11 +1,11 @@
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import type {
     Order,
     CreateOrderDTO,
-    APIResponse,
     OrderStatus,
     ListParams,
     PaginatedResponse,
+    PaginationMeta,
 } from "@/types/api";
 
 const ALL_ITEMS_LIMIT = 1000;
@@ -29,7 +29,7 @@ export const ordersService = {
         if (filters?.status) params.append("status", filters.status);
         if (filters?.orderType) params.append("orderType", filters.orderType);
 
-        const response: any = await apiClient.get(`/orders?${params.toString()}`);
+        const response = await http.get<{ data: { orders: Order[] } }>(`/orders?${params.toString()}`);
         return response.data.orders;
     },
 
@@ -44,7 +44,7 @@ export const ordersService = {
         if (params.status) qs.append("status", params.status);
         if (params.orderType) qs.append("orderType", params.orderType);
 
-        const response: any = await apiClient.get(`/orders?${qs.toString()}`);
+        const response = await http.get<{ data: { orders: Order[]; pagination: PaginationMeta } }>(`/orders?${qs.toString()}`);
         return { data: response.data.orders, pagination: response.data.pagination };
     },
 
@@ -52,7 +52,7 @@ export const ordersService = {
      * Get order by ID
      */
     async getById(id: string): Promise<Order> {
-        const response: any = await apiClient.get(`/orders/${id}`);
+        const response = await http.get<{ data: { order: Order } }>(`/orders/${id}`);
         return response.data.order;
     },
 
@@ -60,7 +60,7 @@ export const ordersService = {
      * Create new order
      */
     async create(data: CreateOrderDTO): Promise<Order> {
-        const response: any = await apiClient.post("/orders", data);
+        const response = await http.post<{ data: { order: Order } }>("/orders", data);
         return response.data.order;
     },
 
@@ -68,7 +68,7 @@ export const ordersService = {
      * Update order
      */
     async update(id: string, data: Partial<CreateOrderDTO>): Promise<Order> {
-        const response: any = await apiClient.put(`/orders/${id}`, data);
+        const response = await http.put<{ data: { order: Order } }>(`/orders/${id}`, data);
         return response.data.order;
     },
 
@@ -76,7 +76,7 @@ export const ordersService = {
      * Update order status
      */
     async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-        const response: any = await apiClient.put(`/orders/${id}`, { status });
+        const response = await http.put<{ data: { order: Order } }>(`/orders/${id}`, { status });
         return response.data.order;
     },
 
@@ -84,6 +84,6 @@ export const ordersService = {
      * Delete/Cancel order (Admin only)
      */
     async delete(id: string): Promise<void> {
-        await apiClient.delete(`/orders/${id}`);
+        await http.delete(`/orders/${id}`);
     },
 };

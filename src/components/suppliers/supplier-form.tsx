@@ -67,7 +67,7 @@ export function SupplierForm({
             setFormData((prev) => ({
                 ...prev,
                 [parent]: {
-                    ...(prev[parent as keyof CreateSupplierDTO] as any),
+                    ...(prev[parent as keyof CreateSupplierDTO] as unknown as Record<string, unknown>),
                     [child]: value,
                 },
             }));

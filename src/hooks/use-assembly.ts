@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { assemblyService } from "@/services/assembly.service";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 /** Buildable-quantity for a kit in a warehouse. Disabled until both are set. */
 export function useBuildable(kitProductId?: string, warehouseId?: string) {
@@ -24,6 +25,6 @@ export function useAssemble() {
                 `${result.assembled ? "Assembled" : "Disassembled"} ${result.quantity} unit${result.quantity !== 1 ? "s" : ""}`
             );
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Assembly failed"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Assembly failed"),
     });
 }

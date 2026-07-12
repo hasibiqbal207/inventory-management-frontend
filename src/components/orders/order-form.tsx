@@ -54,7 +54,7 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
         }
     };
 
-    const updateItem = (index: number, field: keyof OrderItem, value: any) => {
+    const updateItem = (index: number, field: keyof OrderItem, value: string | number) => {
         const newItems = [...items];
         newItems[index] = { ...newItems[index], [field]: value };
 

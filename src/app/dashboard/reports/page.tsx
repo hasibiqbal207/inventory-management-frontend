@@ -27,14 +27,26 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 const CHART_COLOR = "#2563eb";
 const CHART_COLOR_SOFT = "#93c5fd";
 
-function ChartTooltipCurrency({ active, payload, label }: any) {
+interface ChartTooltipEntry {
+    dataKey?: string | number;
+    name?: string | number;
+    value?: number;
+}
+
+interface ChartTooltipProps {
+    active?: boolean;
+    payload?: ChartTooltipEntry[];
+    label?: string | number;
+}
+
+function ChartTooltipCurrency({ active, payload, label }: ChartTooltipProps) {
     if (!active || !payload?.length) return null;
     return (
         <div className="bg-white border border-gray-200 rounded-md shadow-sm px-3 py-2 text-sm">
             <p className="font-medium text-gray-900">{label}</p>
-            {payload.map((entry: any) => (
+            {payload.map((entry) => (
                 <p key={entry.dataKey} className="text-gray-600">
-                    {entry.name}: {formatCurrency(entry.value)}
+                    {entry.name}: {formatCurrency(entry.value ?? 0)}
                 </p>
             ))}
         </div>
@@ -411,7 +423,7 @@ function ReportsPageContent() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {supplierReport.map((s: any, idx: number) => (
+                                        {supplierReport.map((s, idx: number) => (
                                             <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                                                 <td className="py-3 px-4 font-medium text-gray-900">{s.companyName}</td>
                                                 <td className="py-3 px-4 text-right">{s.totalOrders}</td>
@@ -462,7 +474,7 @@ function ReportsPageContent() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {damageReport.map((d: any, idx: number) => (
+                                        {damageReport.map((d, idx: number) => (
                                             <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                                                 <td className="py-3 px-4 text-sm">{new Date(d.date).toLocaleDateString()}</td>
                                                 <td className="py-3 px-4">

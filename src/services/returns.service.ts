@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import type { ReturnRMA, CreateReturnDTO, ReturnStatus, ReturnType } from "@/types/api";
 
 /**
@@ -11,42 +11,42 @@ export const returnsService = {
         if (filters?.status) params.append("status", filters.status);
         if (filters?.returnType) params.append("returnType", filters.returnType);
         const qs = params.toString();
-        const response: any = await apiClient.get(`/returns${qs ? `?${qs}` : ""}`);
+        const response = await http.get<{ data: { returns: ReturnRMA[] } }>(`/returns${qs ? `?${qs}` : ""}`);
         return response.data.returns;
     },
 
     async getById(id: string): Promise<ReturnRMA> {
-        const response: any = await apiClient.get(`/returns/${id}`);
+        const response = await http.get<{ data: { return: ReturnRMA } }>(`/returns/${id}`);
         return response.data.return;
     },
 
     async create(data: CreateReturnDTO): Promise<ReturnRMA> {
-        const response: any = await apiClient.post("/returns", data);
+        const response = await http.post<{ data: { return: ReturnRMA } }>("/returns", data);
         return response.data.return;
     },
 
     async approve(id: string): Promise<ReturnRMA> {
-        const response: any = await apiClient.patch(`/returns/${id}/approve`, {});
+        const response = await http.patch<{ data: { return: ReturnRMA } }>(`/returns/${id}/approve`, {});
         return response.data.return;
     },
 
     async reject(id: string, reason: string): Promise<ReturnRMA> {
-        const response: any = await apiClient.patch(`/returns/${id}/reject`, { reason });
+        const response = await http.patch<{ data: { return: ReturnRMA } }>(`/returns/${id}/reject`, { reason });
         return response.data.return;
     },
 
     async cancel(id: string): Promise<ReturnRMA> {
-        const response: any = await apiClient.patch(`/returns/${id}/cancel`, {});
+        const response = await http.patch<{ data: { return: ReturnRMA } }>(`/returns/${id}/cancel`, {});
         return response.data.return;
     },
 
     async receive(id: string): Promise<ReturnRMA> {
-        const response: any = await apiClient.patch(`/returns/${id}/receive`, {});
+        const response = await http.patch<{ data: { return: ReturnRMA } }>(`/returns/${id}/receive`, {});
         return response.data.return;
     },
 
     async complete(id: string): Promise<ReturnRMA> {
-        const response: any = await apiClient.patch(`/returns/${id}/complete`, {});
+        const response = await http.patch<{ data: { return: ReturnRMA } }>(`/returns/${id}/complete`, {});
         return response.data.return;
     },
 };

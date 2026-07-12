@@ -63,7 +63,7 @@ export function WarehouseForm({
         }
     }, [warehouse]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
 
         if (name.includes(".")) {
@@ -71,7 +71,7 @@ export function WarehouseForm({
             setFormData((prev) => ({
                 ...prev,
                 [parent]: {
-                    ...(prev[parent as keyof CreateWarehouseDTO] as any),
+                    ...(prev[parent as keyof CreateWarehouseDTO] as unknown as Record<string, unknown>),
                     [child]: type === "number" ? parseFloat(value) || 0 : value,
                 },
             }));
@@ -125,7 +125,7 @@ export function WarehouseForm({
                         id="type"
                         name="type"
                         value={formData.type}
-                        onChange={handleChange as any}
+                        onChange={handleChange}
                         required
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >

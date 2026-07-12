@@ -1,5 +1,4 @@
-import { apiClient } from "@/lib/api-client";
-import type { APIResponse } from "@/types/api";
+import { http } from "@/lib/api-client";
 
 export interface InventoryReport {
     totalProducts: number;
@@ -36,13 +35,31 @@ export interface SalesReport {
     }>;
 }
 
+export interface SupplierReportRow {
+    companyName: string;
+    totalOrders: number;
+    totalValue: number;
+    avgFulfillmentDays?: number;
+    reliability: number;
+}
+
+export interface DamageReportRow {
+    date: string;
+    productName: string;
+    sku: string;
+    warehouseName: string;
+    quantity: number;
+    value: number;
+    reference: string;
+}
+
 export const reportsService = {
     async getInventoryReport(params?: { startDate?: string; endDate?: string }): Promise<InventoryReport> {
         const queryParams = new URLSearchParams();
         if (params?.startDate) queryParams.append("startDate", params.startDate);
         if (params?.endDate) queryParams.append("endDate", params.endDate);
 
-        const response: any = await apiClient.get(`/reports/inventory?${queryParams.toString()}`);
+        const response = await http.get<{ data: { report: InventoryReport } }>(`/reports/inventory?${queryParams.toString()}`);
         return response.data.report;
     },
 
@@ -51,16 +68,16 @@ export const reportsService = {
         if (params?.startDate) queryParams.append("startDate", params.startDate);
         if (params?.endDate) queryParams.append("endDate", params.endDate);
 
-        const response: any = await apiClient.get(`/reports/sales?${queryParams.toString()}`);
+        const response = await http.get<{ data: { report: SalesReport } }>(`/reports/sales?${queryParams.toString()}`);
         return response.data.report;
     },
 
-    async getSupplierReport(): Promise<any[]> {
-        const response: any = await apiClient.get("/reports/suppliers");
+    async getSupplierReport(): Promise<SupplierReportRow[]> {
+        const response = await http.get<{ data: { report: SupplierReportRow[] } }>("/reports/suppliers");
         return response.data.report;
     },
-    async getDamageReport(): Promise<any[]> {
-        const response: any = await apiClient.get("/reports/damage");
+    async getDamageReport(): Promise<DamageReportRow[]> {
+        const response = await http.get<{ data: { report: DamageReportRow[] } }>("/reports/damage");
         return response.data.report;
     },
 };

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { ProductForm } from "@/components/products/product-form";
 import { ArrowLeft, Edit, Trash2, Package } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { useState } from "react";
 import type { CreateProductDTO } from "@/types/api";
 import { usePermissions } from "@/hooks/use-permissions";

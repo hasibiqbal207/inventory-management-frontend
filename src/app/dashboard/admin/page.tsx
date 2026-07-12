@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import { systemService } from "@/services/system.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,15 @@ import {
 import { formatCurrency } from "@/lib/utils";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
+
+interface AdminStats {
+    totalUsers?: number;
+    totalProducts?: number;
+    totalOrders?: number;
+    totalRevenue?: number;
+    lowStockItems?: number;
+    pendingOrders?: number;
+}
 
 export default function AdminDashboardPage() {
     return (
@@ -45,7 +54,7 @@ function AdminDashboardPageContent() {
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ["admin-stats"],
         queryFn: async () => {
-            const response: any = await apiClient.get("/system/admin-stats");
+            const response = await http.get<{ data: AdminStats }>("/system/admin-stats");
             return response.data;
         },
     });

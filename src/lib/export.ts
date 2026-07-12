@@ -14,7 +14,7 @@ export function toCsvValue(value: unknown): string {
 
 export function rowsToCsv(
     columns: Array<{ key: string; label: string }>,
-    rows: Array<Record<string, unknown>>
+    rows: ReadonlyArray<Record<string, unknown>>
 ): string {
     const header = columns.map((c) => toCsvValue(c.label)).join(",");
     const lines = rows.map((row) =>
@@ -23,12 +23,12 @@ export function rowsToCsv(
     return [header, ...lines].join("\n");
 }
 
-export function exportRowsToCsv(
+export function exportRowsToCsv<T extends object>(
     filename: string,
     columns: Array<{ key: string; label: string }>,
-    rows: Array<Record<string, unknown>>
+    rows: ReadonlyArray<T>
 ): void {
-    const csv = rowsToCsv(columns, rows);
+    const csv = rowsToCsv(columns, rows as ReadonlyArray<Record<string, unknown>>);
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

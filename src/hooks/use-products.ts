@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { productsService } from "@/services/products.service";
 import type { CreateProductDTO, UpdateProductDTO, ListParams } from "@/types/api";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 /**
  * Get all products (unpaginated) — for dropdowns and bulk consumers.
@@ -48,7 +49,7 @@ export function useCreateProduct() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Product created successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to create product");
         },
     });
@@ -68,7 +69,7 @@ export function useUpdateProduct() {
             queryClient.invalidateQueries({ queryKey: ["products", variables.id] });
             toast.success("Product updated successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to update product");
         },
     });
@@ -86,7 +87,7 @@ export function useDeleteProduct() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Product deleted successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to delete product");
         },
     });

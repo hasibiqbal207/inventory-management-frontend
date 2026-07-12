@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { Eye, EyeOff, Package, Sparkles, ArrowRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 export default function RegisterPage() {
@@ -95,8 +96,8 @@ export default function RegisterPage() {
             });
             toast.success("Registration successful! Please login.");
             router.push("/login");
-        } catch (error: any) {
-            toast.error(error?.error?.message || "Registration failed. Please try again.");
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error, "Registration failed. Please try again."));
         }
     };
 

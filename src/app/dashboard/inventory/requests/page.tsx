@@ -15,7 +15,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Check, X, Eye, Clock, AlertCircle, CheckCircle2, XCircle, Calendar, Truck, Globe, Box } from "lucide-react";
+import { Check, X, Eye, Clock, CheckCircle2, XCircle, Calendar, Truck, Globe, Box } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ProtectedRoute } from "@/components/auth/protected-route";

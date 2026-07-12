@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { inventoryService } from "@/services/inventory.service";
-import type { AddStockDTO, RemoveStockDTO } from "@/types/api";
+import type { AddStockDTO, RemoveStockDTO, Inventory } from "@/types/api";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 /**
  * Get all inventory items with pagination and filtering
@@ -37,7 +38,7 @@ export function useAddStock() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Stock added successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to add stock");
         },
     });
@@ -56,7 +57,7 @@ export function useRemoveStock() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Stock removed successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to remove stock");
         },
     });
@@ -69,14 +70,14 @@ export function useUpdateInventory() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: Partial<any> }) =>
+        mutationFn: ({ id, data }: { id: string; data: Partial<Inventory> }) =>
             inventoryService.update(id, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ["inventory"] });
             queryClient.invalidateQueries({ queryKey: ["inventory", variables.id] });
             toast.success("Inventory updated successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to update inventory");
         },
     });
@@ -101,7 +102,7 @@ export function useTransferStock() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Stock transferred successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to transfer stock");
         },
     });

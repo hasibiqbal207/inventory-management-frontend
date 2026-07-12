@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cycleCountService } from "@/services/cycle-count.service";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 export function useCycleCounts(warehouseId?: string, status?: string) {
     return useQuery({
@@ -32,7 +33,7 @@ export function useCreateCycleCount() {
             queryClient.invalidateQueries({ queryKey: ["cycle-counts"] });
             toast.success("Cycle count started");
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to start count"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to start count"),
     });
 }
 
@@ -42,7 +43,7 @@ export function useRecordCount(sessionId: string) {
         mutationFn: ({ productId, countedQuantity }: { productId: string; countedQuantity: number }) =>
             cycleCountService.recordCount(sessionId, productId, countedQuantity),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cycle-counts", sessionId] }),
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to record count"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to record count"),
     });
 }
 
@@ -55,6 +56,6 @@ export function useCompleteCycleCount() {
             queryClient.invalidateQueries({ queryKey: ["inventory"] });
             toast.success(`Count completed — ${result.adjustments} adjustment(s) posted`);
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Failed to complete count"),
+        onError: (e: ApiErrorLike) => toast.error(e?.error?.message || "Failed to complete count"),
     });
 }

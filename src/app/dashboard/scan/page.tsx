@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScanLine, Plus, Minus, Package, X } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import type { Warehouse } from "@/types/api";
 
@@ -59,8 +60,8 @@ function ScanContent() {
             setScanned({ ...result.product, quantity: result.quantity });
             setQty(1);
             setCode("");
-        } catch (err: any) {
-            toast.error(err?.error?.message || err?.message || "Product not found");
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err, "Product not found"));
             setScanned(null);
             setCode("");
         } finally {

@@ -27,9 +27,8 @@ import { AddStockForm } from "@/components/inventory/add-stock-form";
 import { RemoveStockForm } from "@/components/inventory/remove-stock-form";
 import { TransferStockForm } from "@/components/inventory/transfer-stock-form";
 import { Plus, Minus, Search, Warehouse, TrendingUp, TrendingDown, Package, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDate } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
-import type { AddStockDTO, RemoveStockDTO, Inventory, Product } from "@/types/api";
+import type { AddStockDTO, RemoveStockDTO, Product } from "@/types/api";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -131,9 +130,21 @@ function InventoryPageContent() {
         setSelectedProductId(undefined);
     };
 
-    const handleTransferStock = async (data: any) => {
+    const handleTransferStock = async (data: {
+        productId: string;
+        fromWarehouseId: string;
+        toWarehouseId: string;
+        quantity: number;
+        reason: string;
+        reference: string;
+        expiryDate?: string;
+        supplier?: string;
+        origin?: string;
+        productMaterial?: string;
+    }) => {
         if (isStaff) {
-            await createRequest.mutateAsync({ ...data, type: "transfer" });
+            // A transfer request is anchored to its origin warehouse.
+            await createRequest.mutateAsync({ ...data, warehouseId: data.fromWarehouseId, type: "transfer" });
         } else {
             await transferStock.mutateAsync(data);
         }

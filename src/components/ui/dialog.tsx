@@ -1,6 +1,5 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
 
 export interface DialogProps {
     open?: boolean;
@@ -24,8 +23,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
     );
 }
 
-export interface DialogContentProps
-    extends React.HTMLAttributes<HTMLDivElement> { }
+export type DialogContentProps = React.HTMLAttributes<HTMLDivElement>;
 
 export const DialogContent = React.forwardRef<
     HTMLDivElement,
@@ -44,8 +42,7 @@ export const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = "DialogContent";
 
-export interface DialogHeaderProps
-    extends React.HTMLAttributes<HTMLDivElement> { }
+export type DialogHeaderProps = React.HTMLAttributes<HTMLDivElement>;
 
 export const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
     ({ className, ...props }, ref) => (
@@ -58,8 +55,7 @@ export const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
 );
 DialogHeader.displayName = "DialogHeader";
 
-export interface DialogTitleProps
-    extends React.HTMLAttributes<HTMLHeadingElement> { }
+export type DialogTitleProps = React.HTMLAttributes<HTMLHeadingElement>;
 
 export const DialogTitle = React.forwardRef<
     HTMLHeadingElement,
@@ -73,8 +69,7 @@ export const DialogTitle = React.forwardRef<
 ));
 DialogTitle.displayName = "DialogTitle";
 
-export interface DialogDescriptionProps
-    extends React.HTMLAttributes<HTMLParagraphElement> { }
+export type DialogDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>;
 
 export const DialogDescription = React.forwardRef<
     HTMLParagraphElement,
@@ -88,8 +83,7 @@ export const DialogDescription = React.forwardRef<
 ));
 DialogDescription.displayName = "DialogDescription";
 
-export interface DialogFooterProps
-    extends React.HTMLAttributes<HTMLDivElement> { }
+export type DialogFooterProps = React.HTMLAttributes<HTMLDivElement>;
 
 export const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
     ({ className, ...props }, ref) => (

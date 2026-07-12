@@ -1,10 +1,9 @@
-import { apiClient } from "@/lib/api-client";
+import { apiClient, http } from "@/lib/api-client";
 import type {
     LoginCredentials,
     RegisterData,
     AuthResponse,
     User,
-    APIResponse,
 } from "@/types/api";
 
 /**
@@ -16,11 +15,11 @@ export const authService = {
      * Register a new user
      */
     async register(data: RegisterData): Promise<User> {
-        const response: any = await apiClient.post(
+        // Interceptor returns response.data, so response is APIResponse<{ user: User }>
+        const response = await http.post<{ data: { user: User } }>(
             "/auth/register",
             data
         );
-        // Interceptor returns response.data, so response is APIResponse<{ user: User }>
         return response.data.user;
     },
 
@@ -29,7 +28,7 @@ export const authService = {
      * and no code was supplied — the caller should re-submit with mfaToken.
      */
     async login(credentials: LoginCredentials & { mfaToken?: string }): Promise<AuthResponse & { mfaRequired?: boolean }> {
-        const response: any = await apiClient.post(
+        const response = await http.post<{ data: AuthResponse & { refreshToken?: string; mfaRequired?: boolean } }>(
             "/auth/login",
             credentials
         );
@@ -50,7 +49,7 @@ export const authService = {
         const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null;
         if (!refreshToken) return null;
         try {
-            const response: any = await apiClient.post("/auth/refresh", { refreshToken });
+            const response = await http.post<{ data: { token: string; refreshToken: string } }>("/auth/refresh", { refreshToken });
             if (typeof window !== "undefined") {
                 localStorage.setItem("auth_token", response.data.token);
                 localStorage.setItem("refresh_token", response.data.refreshToken);
@@ -63,7 +62,7 @@ export const authService = {
     },
 
     async forgotPassword(email: string): Promise<{ devResetToken?: string }> {
-        const response: any = await apiClient.post("/auth/forgot-password", { email });
+        const response = await http.post<{ data: { devResetToken?: string } }>("/auth/forgot-password", { email });
         return response.data;
     },
 
@@ -72,7 +71,7 @@ export const authService = {
     },
 
     async setupMfa(): Promise<{ secret: string; otpauthUri: string }> {
-        const response: any = await apiClient.post("/auth/mfa/setup", {});
+        const response = await http.post<{ data: { secret: string; otpauthUri: string } }>("/auth/mfa/setup", {});
         return response.data;
     },
 
@@ -90,7 +89,7 @@ export const authService = {
      * doesn't carry the full user record.
      */
     async getCurrentUser(): Promise<User> {
-        const response: any = await apiClient.get("/auth/me");
+        const response = await http.get<{ data: { user: User } }>("/auth/me");
         return response.data.user;
     },
 

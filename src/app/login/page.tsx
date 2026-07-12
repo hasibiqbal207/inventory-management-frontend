@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { Eye, EyeOff, Package, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
@@ -42,8 +43,8 @@ export default function LoginPage() {
             }
             toast.success("Login successful!");
             router.push("/dashboard");
-        } catch (error: any) {
-            toast.error(error?.error?.message || "Login failed. Please try again.");
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error, "Login failed. Please try again."));
         }
     };
 
@@ -186,7 +187,7 @@ export default function LoginPage() {
 
                     {/* Footer */}
                     <div className="text-center text-sm">
-                        <span className="text-amber-900/70">Don't have an account? </span>
+                        <span className="text-amber-900/70">Don&apos;t have an account? </span>
                         <Link
                             href="/register"
                             className="text-amber-900 font-semibold hover:text-amber-700 transition-colors inline-flex items-center gap-1 group"

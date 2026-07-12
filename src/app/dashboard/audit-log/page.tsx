@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { auditLogService } from "@/services/audit-log.service";
+import type { AuditLog } from "@/types/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ function AuditLogPageContent() {
     const actionVariant = (a: string) =>
         a === "create" ? "success" : a === "delete" ? "destructive" : "default";
 
-    const performedByLabel = (performedBy: any) => {
+    const performedByLabel = (performedBy: AuditLog["performedBy"]) => {
         if (!performedBy) return "System";
         if (typeof performedBy === "string") return performedBy;
         return `${performedBy.firstName} ${performedBy.lastName}`;

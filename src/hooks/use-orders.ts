@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { ordersService } from "@/services/orders.service";
 import type { CreateOrderDTO, OrderStatus, ListParams } from "@/types/api";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 /**
  * Get all orders with optional filters
@@ -49,7 +50,7 @@ export function useCreateOrder() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success("Order created successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to create order");
         },
     });
@@ -69,7 +70,7 @@ export function useUpdateOrder() {
             queryClient.invalidateQueries({ queryKey: ["orders", variables.id] });
             toast.success("Order updated successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to update order");
         },
     });
@@ -89,7 +90,7 @@ export function useUpdateOrderStatus() {
             queryClient.invalidateQueries({ queryKey: ["orders", variables.id] });
             toast.success("Order status updated!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to update status");
         },
     });
@@ -107,7 +108,7 @@ export function useDeleteOrder() {
             queryClient.invalidateQueries({ queryKey: ["orders"] });
             toast.success("Order deleted successfully!");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || "Failed to delete order");
         },
     });

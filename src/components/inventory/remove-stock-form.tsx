@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useProducts } from "@/hooks/use-products";
 import { useWarehouses } from "@/hooks/use-warehouses";
 import { useOrders } from "@/hooks/use-orders";
-import type { RemoveStockDTO } from "@/types/api";
+import type { RemoveStockDTO, User } from "@/types/api";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface RemoveStockFormProps {
@@ -170,7 +170,7 @@ export function RemoveStockForm({
                             <option value="">Select an order</option>
                             {orders?.filter(o => o.orderType === "sales").map((order) => (
                                 <option key={order._id} value={order.orderNumber}>
-                                    {order.orderNumber} ({order.customerId && typeof order.customerId === 'object' ? (order.customerId as any).firstName : 'Customer'})
+                                    {order.orderNumber} ({order.customerId && typeof order.customerId === 'object' ? (order.customerId as User).firstName : 'Customer'})
                                 </option>
                             ))}
                             <option value="OTHER">Other / Manual Entry</option>

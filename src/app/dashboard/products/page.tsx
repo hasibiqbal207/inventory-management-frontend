@@ -22,7 +22,7 @@ import {
 import { ProductForm } from "@/components/products/product-form";
 import { ProductImportDialog } from "@/components/products/product-import-dialog";
 import { Plus, Search, Edit, Trash2, Package, Upload, Download, Power, PowerOff } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 import { exportRowsToCsv } from "@/lib/export";
 import { productsService } from "@/services/products.service";
 import { toast } from "sonner";
@@ -96,7 +96,7 @@ function ProductsPageContent() {
             const verb = action === "delete" ? "deleted" : action === "activate" ? "activated" : "deactivated";
             toast.success(`${count} product${count !== 1 ? "s" : ""} ${verb}`);
         },
-        onError: (e: any) => toast.error(e?.error?.message || "Bulk action failed"),
+        onError: (e: unknown) => toast.error(getErrorMessage(e, "Bulk action failed")),
     });
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -119,8 +119,8 @@ function ProductsPageContent() {
                 columns.map((c) => ({ key: c, label: c })),
                 rows
             );
-        } catch (error: any) {
-            toast.error(error?.error?.message || error?.message || "Export failed");
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error, "Export failed"));
         } finally {
             setIsExporting(false);
         }
@@ -178,7 +178,7 @@ function ProductsPageContent() {
                 <div className="text-center">
                     <p className="text-destructive">Failed to load products</p>
                     <p className="text-sm text-muted-foreground mt-2">
-                        {(error as any)?.error?.message || "Please try again later"}
+                        {getErrorMessage(error, "Please try again later")}
                     </p>
                 </div>
             </div>

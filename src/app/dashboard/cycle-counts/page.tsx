@@ -207,7 +207,7 @@ function SessionDetail({ sessionId, onComplete, completing }: { sessionId: strin
 
 function abcBadge(cls: string) {
     const color = cls === "A" ? "danger" : cls === "B" ? "warning" : "default";
-    return <Badge variant={color as any}>{cls}</Badge>;
+    return <Badge variant={color}>{cls}</Badge>;
 }
 
 function ClassificationReport() {

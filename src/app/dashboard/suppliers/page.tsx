@@ -21,6 +21,7 @@ import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { Users, Mail, Phone, MapPin, Star, Plus, Edit, Trash2, Search } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import type { Supplier, CreateSupplierDTO } from "@/types/api";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -62,8 +63,8 @@ function SuppliersPageContent() {
             queryClient.invalidateQueries({ queryKey: ["suppliers"] });
             toast.success("Supplier created successfully!");
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to create supplier");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to create supplier"));
         },
     });
 
@@ -74,8 +75,8 @@ function SuppliersPageContent() {
             queryClient.invalidateQueries({ queryKey: ["suppliers"] });
             toast.success("Supplier updated successfully!");
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to update supplier");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to update supplier"));
         },
     });
 
@@ -85,8 +86,8 @@ function SuppliersPageContent() {
             queryClient.invalidateQueries({ queryKey: ["suppliers"] });
             toast.success("Supplier deleted successfully!");
         },
-        onError: (error: any) => {
-            toast.error(error?.error?.message || "Failed to delete supplier");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Failed to delete supplier"));
         },
     });
 

@@ -7,7 +7,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
@@ -17,7 +17,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Plus, ShoppingCart, Eye, Trash2, Package, Coins } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 import type { Order, OrderStatus, OrderType, Currency } from "@/types/api";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -135,7 +135,7 @@ function OrdersPageContent() {
                 <div className="text-center">
                     <p className="text-red-600">Failed to load orders</p>
                     <p className="text-sm text-gray-600 mt-2">
-                        {(error as any)?.error?.message || "Please try again later"}
+                        {getErrorMessage(error, "Please try again later")}
                     </p>
                 </div>
             </div>

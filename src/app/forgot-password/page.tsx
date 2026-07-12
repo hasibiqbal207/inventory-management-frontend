@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { Package, ArrowLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
@@ -24,8 +25,8 @@ export default function ForgotPasswordPage() {
             setSent(true);
             // In dev (SMTP not configured) the token comes back so the flow is testable.
             if (res?.devResetToken) setDevToken(res.devResetToken);
-        } catch (err: any) {
-            toast.error(err?.error?.message || "Something went wrong");
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err, "Something went wrong"));
         } finally {
             setLoading(false);
         }

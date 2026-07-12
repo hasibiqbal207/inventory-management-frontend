@@ -7,9 +7,6 @@ import {
     Bell,
     BarChart3,
     Settings,
-    FileText,
-    TrendingUp,
-    AlertTriangle,
     ClipboardList,
     LucideIcon,
 } from "lucide-react";

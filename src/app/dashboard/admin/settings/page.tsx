@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Settings as SettingsIcon, Database, Bell, ShieldCheck } from "lucide-react";
 import { systemService } from "@/services/system.service";
 import type { Setting } from "@/types/api";
+import { getErrorMessage } from "@/lib/utils";
 
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -40,18 +41,18 @@ function AdminSettingsPageContent() {
         queryFn: () => systemService.getSettings(),
     });
 
-    const [pendingChanges, setPendingChanges] = useState<Record<string, any>>({});
+    const [pendingChanges, setPendingChanges] = useState<Record<string, unknown>>({});
 
     const updateSettings = useMutation({
-        mutationFn: (updates: Array<{ key: string; value: any }>) =>
+        mutationFn: (updates: Array<{ key: string; value: unknown }>) =>
             systemService.updateSettings(updates),
         onSuccess: () => {
             toast.success("Settings saved");
             setPendingChanges({});
             queryClient.invalidateQueries({ queryKey: ["settings"] });
         },
-        onError: (err: any) => {
-            toast.error(err?.error?.message || "Failed to save settings");
+        onError: (err: unknown) => {
+            toast.error(getErrorMessage(err, "Failed to save settings"));
         },
     });
 
@@ -64,10 +65,13 @@ function AdminSettingsPageContent() {
         return groups;
     }, [settings]);
 
-    const currentValue = (setting: Setting) =>
-        setting.key in pendingChanges ? pendingChanges[setting.key] : setting.value;
+    // Setting values are always primitives (string/number/boolean) on the wire.
+    const currentValue = (setting: Setting): string | number | boolean =>
+        (setting.key in pendingChanges
+            ? pendingChanges[setting.key]
+            : setting.value) as string | number | boolean;
 
-    const handleChange = (key: string, value: any) => {
+    const handleChange = (key: string, value: string | number | boolean) => {
         setPendingChanges((prev) => ({ ...prev, [key]: value }));
     };
 
@@ -153,8 +157,8 @@ function SettingControl({
     onChange,
 }: {
     setting: Setting;
-    value: any;
-    onChange: (value: any) => void;
+    value: string | number | boolean;
+    onChange: (value: string | number | boolean) => void;
 }) {
     const label = setting.description || setting.key;
 
@@ -179,7 +183,7 @@ function SettingControl({
             <div>
                 <label className="text-sm font-medium text-gray-700">{label}</label>
                 <select
-                    value={value}
+                    value={String(value)}
                     disabled={setting.isSystem}
                     onChange={(e) => onChange(e.target.value)}
                     className="mt-1 flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
@@ -199,7 +203,7 @@ function SettingControl({
             <label className="text-sm font-medium text-gray-700">{label}</label>
             <input
                 type={setting.dataType === "number" ? "number" : "text"}
-                value={value}
+                value={String(value)}
                 disabled={setting.isSystem}
                 onChange={(e) =>
                     onChange(setting.dataType === "number" ? Number(e.target.value) : e.target.value)

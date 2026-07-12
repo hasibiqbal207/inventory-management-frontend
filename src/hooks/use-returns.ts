@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { returnsService } from "@/services/returns.service";
 import type { CreateReturnDTO, ReturnStatus, ReturnType } from "@/types/api";
 import { toast } from "sonner";
+import type { ApiErrorLike } from "@/lib/utils";
 
 export function useReturns(filters?: { status?: ReturnStatus; returnType?: ReturnType }) {
     return useQuery({
@@ -18,7 +19,7 @@ export function useCreateReturn() {
             queryClient.invalidateQueries({ queryKey: ["returns"] });
             toast.success("Return (RMA) created.");
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || error?.message || "Failed to create return");
         },
     });
@@ -60,7 +61,7 @@ export function useReturnAction() {
             }
             toast.success(`Return ${variables.action}d.`);
         },
-        onError: (error: any) => {
+        onError: (error: ApiErrorLike) => {
             toast.error(error?.error?.message || error?.message || "Action failed");
         },
     });

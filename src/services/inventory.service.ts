@@ -1,9 +1,8 @@
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import type {
     Inventory,
     AddStockDTO,
     RemoveStockDTO,
-    APIResponse,
 } from "@/types/api";
 
 /**
@@ -22,7 +21,7 @@ export const inventoryService = {
             params.append('warehouseId', warehouseId);
         }
 
-        const response: any = await apiClient.get(`/inventory?${params.toString()}`);
+        const response = await http.get<{ data: { inventory: Inventory[]; total: number; page: number; totalPages: number } }>(`/inventory?${params.toString()}`);
         return response.data;
     },
 
@@ -30,7 +29,7 @@ export const inventoryService = {
      * Get inventory item by ID
      */
     async getById(id: string): Promise<Inventory> {
-        const response: any = await apiClient.get(`/inventory/${id}`);
+        const response = await http.get<{ data: { inventory: Inventory } }>(`/inventory/${id}`);
         return response.data.inventory;
     },
 
@@ -38,7 +37,7 @@ export const inventoryService = {
      * Add stock to inventory
      */
     async addStock(data: AddStockDTO): Promise<Inventory> {
-        const response: any = await apiClient.post("/inventory/add", data);
+        const response = await http.post<{ data: { inventory: Inventory } }>("/inventory/add", data);
         return response.data.inventory;
     },
 
@@ -46,7 +45,7 @@ export const inventoryService = {
      * Remove stock from inventory
      */
     async removeStock(data: RemoveStockDTO): Promise<Inventory> {
-        const response: any = await apiClient.post("/inventory/remove", data);
+        const response = await http.post<{ data: { inventory: Inventory } }>("/inventory/remove", data);
         return response.data.inventory;
     },
 
@@ -54,7 +53,7 @@ export const inventoryService = {
      * Update inventory item (Admin only)
      */
     async update(id: string, data: Partial<Inventory>): Promise<Inventory> {
-        const response: any = await apiClient.put(`/inventory/${id}`, data);
+        const response = await http.put<{ data: { inventory: Inventory } }>(`/inventory/${id}`, data);
         return response.data.inventory;
     },
 
@@ -67,8 +66,8 @@ export const inventoryService = {
         toWarehouseId: string;
         quantity: number;
         reason: string;
-    }): Promise<any> {
-        const response: any = await apiClient.post("/inventory/transfer", data);
+    }): Promise<unknown> {
+        const response = await http.post<{ data: unknown }>("/inventory/transfer", data);
         return response.data;
     },
 
@@ -82,7 +81,10 @@ export const inventoryService = {
     }> {
         const qs = new URLSearchParams({ code });
         if (warehouseId) qs.append("warehouseId", warehouseId);
-        const response: any = await apiClient.get(`/inventory/scan?${qs.toString()}`);
+        const response = await http.get<{ data: {
+            product: { _id: string; productName: string; sku: string; barcode?: string; category: string };
+            quantity: number | null;
+        } }>(`/inventory/scan?${qs.toString()}`);
         return response.data;
     },
 };

@@ -25,7 +25,7 @@ describe("ProtectedRoute", () => {
             user: null,
             isAuthenticated: false,
             isLoading: true,
-        } as any);
+        } as ReturnType<typeof useAuth>);
 
         render(
             <ProtectedRoute>
@@ -43,7 +43,7 @@ describe("ProtectedRoute", () => {
             user: null,
             isAuthenticated: false,
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof useAuth>);
 
         render(
             <ProtectedRoute>
@@ -60,7 +60,7 @@ describe("ProtectedRoute", () => {
             user: { role: "warehouse_staff" },
             isAuthenticated: true,
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof useAuth>);
 
         render(
             <ProtectedRoute allowedRoles={["admin", "inventory_manager"]}>
@@ -77,7 +77,7 @@ describe("ProtectedRoute", () => {
             user: { role: "admin" },
             isAuthenticated: true,
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof useAuth>);
 
         render(
             <ProtectedRoute allowedRoles={["admin", "inventory_manager"]}>
@@ -94,7 +94,7 @@ describe("ProtectedRoute", () => {
             user: { role: "auditor" },
             isAuthenticated: true,
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof useAuth>);
 
         render(
             <ProtectedRoute>

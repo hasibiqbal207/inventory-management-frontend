@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api-client";
+import { http } from "@/lib/api-client";
 import type { Buildability } from "@/types/api";
 
 /**
@@ -7,7 +7,7 @@ import type { Buildability } from "@/types/api";
 export const assemblyService = {
     async getBuildable(kitProductId: string, warehouseId: string): Promise<Buildability> {
         const qs = new URLSearchParams({ kitProductId, warehouseId });
-        const response: any = await apiClient.get(`/assembly/buildable?${qs.toString()}`);
+        const response = await http.get<{ data: Buildability }>(`/assembly/buildable?${qs.toString()}`);
         return response.data;
     },
 
@@ -17,7 +17,7 @@ export const assemblyService = {
         quantity: number,
         disassemble = false
     ): Promise<{ kitProductId: string; quantity: number; assembled: boolean }> {
-        const response: any = await apiClient.post(`/assembly/assemble`, {
+        const response = await http.post<{ data: { kitProductId: string; quantity: number; assembled: boolean } }>(`/assembly/assemble`, {
             kitProductId,
             warehouseId,
             quantity,
